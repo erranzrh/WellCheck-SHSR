@@ -146,15 +146,16 @@
 
 package com.SmartHealthRemoteSystem.SHSR.User.Doctor;
 
-import com.SmartHealthRemoteSystem.SHSR.Repository.SHSRDAO;
-import com.SmartHealthRemoteSystem.SHSR.User.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.SmartHealthRemoteSystem.SHSR.Repository.SHSRDAO;
+import com.SmartHealthRemoteSystem.SHSR.User.User;
 
 @Repository
 public class DoctorRepository implements SHSRDAO<Doctor> {
@@ -236,7 +237,7 @@ public class DoctorRepository implements SHSRDAO<Doctor> {
             ));
         }
         return "Doctor not found.";
-    }
+    } 
 
     @Override
     public String delete(String id) throws ExecutionException, InterruptedException {

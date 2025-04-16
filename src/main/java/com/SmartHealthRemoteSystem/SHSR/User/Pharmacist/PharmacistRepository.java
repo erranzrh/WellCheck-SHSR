@@ -198,36 +198,32 @@ public class PharmacistRepository implements SHSRDAO<Pharmacist> {
 
     @Override
     public String save(Pharmacist pharmacist) throws ExecutionException, InterruptedException {
-        if (mongoPharmacistRepository.existsById(pharmacist.getUserId())) {
-            return "Error: Pharmacist with ID already exists.";
-        }
-
         User user = new User(pharmacist.getUserId(), pharmacist.getName(), pharmacist.getPassword(),
                 pharmacist.getContact(), pharmacist.getRole(), pharmacist.getEmail());
         mongoUserRepository.save(user);
-
         mongoPharmacistRepository.save(pharmacist);
-        return "Pharmacist saved successfully.";
+        return pharmacist.getUserId();
     }
 
     @Override
     public String update(Pharmacist pharmacist) throws ExecutionException, InterruptedException {
-        mongoPharmacistRepository.save(pharmacist);
         mongoUserRepository.save(new User(
-                pharmacist.getUserId(),
-                pharmacist.getName(),
-                pharmacist.getPassword(),
-                pharmacist.getContact(),
-                pharmacist.getRole(),
-                pharmacist.getEmail()
+            pharmacist.getUserId(),
+            pharmacist.getName(),
+            pharmacist.getPassword(),
+            pharmacist.getContact(),
+            pharmacist.getRole(),
+            pharmacist.getEmail()
         ));
-        return "Pharmacist updated successfully.";
+        mongoPharmacistRepository.save(pharmacist);
+        return pharmacist.getUserId();
     }
 
     @Override
-    public String delete(String pharmacistId) throws ExecutionException, InterruptedException {
-        mongoPharmacistRepository.deleteById(pharmacistId);
-        mongoUserRepository.deleteById(pharmacistId);
-        return "Pharmacist with ID " + pharmacistId + " deleted successfully.";
+    public String delete(String id) throws ExecutionException, InterruptedException {
+        mongoUserRepository.deleteById(id);
+        mongoPharmacistRepository.deleteById(id);
+        return id;
     }
 }
+

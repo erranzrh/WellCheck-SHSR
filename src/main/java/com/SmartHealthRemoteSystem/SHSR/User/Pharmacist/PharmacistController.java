@@ -337,8 +337,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.concurrent.ExecutionException;
 
-@RequestMapping("/pharmacist")
 @Controller
+@RequestMapping("/pharmacist")
 public class PharmacistController {
 
     private final PharmacistService pharmacistService;
@@ -352,11 +352,14 @@ public class PharmacistController {
     public String pharmacistDashboard(Model model) throws ExecutionException, InterruptedException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         MyUserDetails myUserDetails = (MyUserDetails) auth.getPrincipal();
-        Pharmacist pharmacist = pharmacistService.getPharmacist(myUserDetails.getUsername());
 
+        Pharmacist pharmacist = pharmacistService.getPharmacist(myUserDetails.getUsername());
         model.addAttribute("pharmacist", pharmacist);
-        return "PharmacistDashboard"; // Simplified for now
+
+        return "PharmacistDashboard";
     }
+
+
 
     // ------------------------- COMMENTED OUT FOR NOW --------------------------
 

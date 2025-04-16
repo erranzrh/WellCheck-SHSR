@@ -22,7 +22,10 @@
             <ul class="admin_sidebar_links">
                 <li><a href="#" class="admin_sidebar_link">User List</a></li>
                 <li>
-                    <button type="button" class="admin_sidebar_link" id="addUserBtn">Add user</button>
+                    <button type="button" id="addUserBtn" class="btn admin_sidebar_link">
+                        Add User
+                    </button>
+                    
                 </li>
                 <li>
                     <a th:href="@{/generateUniqueKey}" class="admin_sidebar_link">
@@ -365,9 +368,8 @@
         <div class="add_user_page">
             <div class="add_user_page-content">
                 <h4 class="add_user_page-title">User Form</h4>
-                <h4 class="add_user_page-title">Update User</h4>
-                <form th:action="@{/admin/adduser}"  method="post" name="adduser" id="adduser">
-                    <input type="hidden" class="form-control" id="action" name="action" >
+                <form th:action="@{/admin/adduser}" method="post" id="adduser">
+                    <input type="hidden" name="action" id="action" value="add" />
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="userId">User Id</label>
@@ -467,10 +469,10 @@
                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
                 
-                <div class="add_user_page-buttons">
-                    <button type="button" class="btn btn-primary confirmBtn" id="confirmAddUserBtn">Confirm</button>
-                    <button type="button" class="btn btn-secondary" id="cancelBtnAddUser">Cancel</button>
-                </div>
+                    <div class="add_user_page-buttons">
+                        <button type="button" class="btn btn-primary" id="confirmAddUserBtn">Confirm</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtnAddUser">Cancel</button>
+                    </div>
 
             </form>
             </div>

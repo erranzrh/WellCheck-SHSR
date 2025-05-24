@@ -132,8 +132,8 @@
                                                 <td th:style="${sensorData.oxygenReading} < 94 ? 'background-color: rgb(255, 90, 90);': 'background-color: rgb(130, 255, 130);'" >
                                                     [[${sensorData.oxygenReading}]]</td>
                                                 <td th:text="${sensorData.ecgReading}">-</td>
-                                                <td th:style="${sensorData.Heart_Rate} > 90 ? 'background-color: rgb(255, 90, 90);': 'background-color: rgb(130, 255, 130);'" >
-                                                    [[${sensorData.Heart_Rate}]]</td>
+                                                <td th:style="${sensorData.heart_Rate} > 90 ? 'background-color: rgb(255, 90, 90);': 'background-color: rgb(130, 255, 130);'" >
+                                                    [[${sensorData.heart_Rate}]]</td>
                                                 <td th:text="${#dates.format(sensorData.timestamp, 'dd MMM yyyy HH:mm')}">-</td>
                                             </tr>
                                             </tbody>
@@ -158,8 +158,8 @@
                                                     [[${sensorData.oxygenReading}]]
                                                 </td>
                                                 <td th:text="${sensorData.ecgReading}">-</td>
-                                                <td th:style="${sensorData.Heart_Rate} > 90 ? 'background-color: rgb(255, 90, 90);': 'background-color: rgb(130, 255, 130);'">
-                                                    [[${sensorData.Heart_Rate}]]
+                                                <td th:style="${sensorData.heart_Rate} > 90 ? 'background-color: rgb(255, 90, 90);': 'background-color: rgb(130, 255, 130);'">
+                                                    [[${sensorData.heart_Rate}]]
                                                 </td>
                                                 <td th:text="${#dates.format(sensorData.timestamp, 'dd MMM yyyy HH:mm')}">-</td>
                                             </tr>
@@ -413,7 +413,7 @@
                     type: 'category',
                     title: {
                         display: true,
-                        text: 'Date & Time'
+                        text: 'Date & Time' 
                     }
                 },
                 y: {

@@ -50,6 +50,8 @@
 //     }
 // }
 
+
+//MongoDB//
 package com.SmartHealthRemoteSystem.SHSR.User.Pharmacist;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -61,7 +63,9 @@ public class Pharmacist extends User {
 
     private String hospital;
     private String position;
-    private byte[] profilePicture; 
+    private String profilePicture;
+    private String profilePictureType;
+
 
     public Pharmacist() {}
 
@@ -88,14 +92,23 @@ public class Pharmacist extends User {
         this.position = position;
     }
 
-    public byte[] getProfilePicture() {
+    public String getProfilePicture() {
         return profilePicture;
     }
 
-    public void setProfilePicture(byte[] profilePicture) {
+    public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
     }
 
+    public String getProfilePictureType() {
+        return profilePictureType;
+    }
+
+    public void setProfilePictureType(String profilePictureType) {
+        this.profilePictureType = profilePictureType;
+    }
+
+   
     
     
 }

@@ -23,7 +23,10 @@
                     <div class="d-flex shadow flex-column flex-shrink-0 p-3 bg-primary bg-opacity-25 rounded">
                         <a th:href="@{/pharmacist}" class="card-link" style="text-decoration: none; color: black;">
                             <div class="card bg-primary bg-opacity-25 rounded">
-                                <img class="card-img-top" th:src="@{/image/img_avatar1.png}" alt="Card image">
+                               <img class="card-img-top"
+     th:src="${pharmacist.profilePicture} != null ? 'data:' + ${pharmacist.profilePictureType} + ';base64,' + ${pharmacist.profilePicture} : '/image/img_avatar1.png'"
+     alt="Profile Picture" />
+
                                 <div class="card-body">
                                     <h3 class="card-title" th:text="${pharmacist.name}"> </h3>
                                     <p class="card-text" th:text="${pharmacist.position}"></p>
@@ -64,12 +67,48 @@
                     <br>
                     <h3>Medicine Stock information</h3>
 
-                    <!-- Pagination and medicine stock list temporarily disabled -->
-                    <!-- Uncomment this section when pagination is ready to re-integrate -->
+                  <!-- Search Form -->
+<form th:action="@{/pharmacist}" method="get" class="mb-3">
+    <input type="text" name="searchQuery" th:value="${searchQuery}" placeholder="Search medicine..." class="form-control w-50 d-inline-block">
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
 
-                    <!-- <form>...</form> -->
-                    <!-- <table>...</table> -->
-                    <!-- <nav>...</nav> -->
+<!-- Medicine Table -->
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>Medicine Name</th>
+            <th>Quantity</th>
+            <th>Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="med, stat : ${medicineStock}">
+            <td th:text="${startIndex + stat.index + 1}"></td>
+            <td th:text="${med.medName}"></td>
+            <td th:text="${med.quantity}"></td>
+            <td th:text="${med.medType}"></td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- Pagination -->
+<nav>
+  <ul class="pagination justify-content-center">
+    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+      <a class="page-link" th:href="@{/pharmacist(pageNo=${currentPage - 1}, pageSize=${pageSize}, searchQuery=${searchQuery})}">Previous</a>
+    </li>
+    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+        th:classappend="${i == currentPage} ? 'active'">
+      <a class="page-link" th:href="@{/pharmacist(pageNo=${i}, pageSize=${pageSize}, searchQuery=${searchQuery})}" th:text="${i + 1}">1</a>
+    </li>
+    <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+      <a class="page-link" th:href="@{/pharmacist(pageNo=${currentPage + 1}, pageSize=${pageSize}, searchQuery=${searchQuery})}">Next</a>
+    </li>
+  </ul>
+</nav>
+
 
                     <p th:if="${errorMessage}" th:text="${errorMessage}" style="color:red;"></p>
                     <strong>Last Updated: </strong><span style="color:green" th:text="${successMessage}"></span>

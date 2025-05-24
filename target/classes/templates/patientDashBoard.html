@@ -20,7 +20,10 @@
             <div class="d-flex flex-column p-3 bg-primary bg-opacity-25 rounded shadow">
                 <a th:href="@{/patient}" class="card-link text-dark text-decoration-none">
                     <div class="card bg-primary bg-opacity-25 rounded">
-                        <img class="card-img-top" src="/image/img_avatar1.png" alt="Card image">
+                       <img th:src="${patient.profilePicture} != null ? 'data:' + ${patient.profilePictureType} + ';base64,' + ${patient.profilePicture} : '/image/img_avatar1.png'"
+     alt="Profile Picture" class="card-img-top" />
+
+
                         <div class="card-body">
                             <h3 class="card-title" th:text="${patient?.name}">Patient Name</h3>
                             <p style="font-size: 12px;">Contact No: <span th:text="${patient?.contact}">N/A</span></p>
@@ -83,13 +86,13 @@
                 <div class="col">
                     <div class="list-group bg-primary bg-opacity-25 shadow-lg rounded">
                         <a th:href="@{/patient/viewPrescription(pageNo=-1)}"
-                           class="list-group-item m-3 d-flex justify-content-center align-items-center bg-primary bg-opacity-50 rounded"
-                           style="height: 75px;">
-                            <h3>View Doctor's Prescription</h3>
-                        </a>
+   class="list-group-item m-3 d-flex justify-content-center align-items-center bg-primary bg-opacity-50 rounded"
+   style="height: 75px;">
+    <h3>View Doctor's Prescription</h3>
+</a>
 
                         <form th:action="@{/Health-status/viewHealthStatusForm}" method="post" hidden name="healthStatusForm">
-                            <input type="text" th:value="${patient?.userId}" name="patientId" id="patientId">
+                            <input type="text" th:value ="${patient?.userId}" name="patientId" id="patientId">
                             <button>Submit</button>
                         </form>
 

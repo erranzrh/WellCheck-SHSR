@@ -241,10 +241,13 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.SmartHealthRemoteSystem.SHSR.Pagination.PaginationInfo;
 import com.SmartHealthRemoteSystem.SHSR.Service.DoctorService;
 import com.SmartHealthRemoteSystem.SHSR.Service.PatientService;
 import com.SmartHealthRemoteSystem.SHSR.Service.PharmacistService;
@@ -272,38 +275,38 @@ public class AdminController {
     }
 
     @GetMapping
-    public String getAdminDashboard(Model model
-        // , @RequestParam(value = "pageNo", required = false, defaultValue = "1") int pageNo
-    ) throws ExecutionException, InterruptedException {
+public String getAdminDashboard(Model model,
+        @RequestParam(value = "pageNo", required = false, defaultValue = "1") int pageNo) throws ExecutionException, InterruptedException {
 
-        List<User> adminList = userService.getAdminList();
-        List<Patient> patientList = patientService.getAllPatients();
-        List<Doctor> doctorList = doctorService.getAllDoctors();
-        List<Pharmacist> pharmacistList = pharmacistService.getListPharmacist();
+            System.out.println("✅ AdminController: Dashboard accessed");
+    List<User> adminList = userService.getAdminList();
+    List<Patient> patientList = patientService.getAllPatients(); // ✅ Add this
+    System.out.println("✅ Retrieved " + patientList.size() + " patients");
+    List<Doctor> doctorList = doctorService.getAllDoctors();     // ✅ Add this
+    List<Pharmacist> pharmacistList = pharmacistService.getListPharmacist(); // ✅ Add this
 
-        // Add full lists directly without pagination
-        model.addAttribute("adminList", adminList);
-        model.addAttribute("patientList", patientList);
-        model.addAttribute("doctorList", doctorList);
-        model.addAttribute("pharmacistList", pharmacistList);
+    PaginationInfo adminPagination = getPaginationInfo(adminList, pageNo);
+    PaginationInfo patientPagination = getPaginationInfo(patientList, pageNo);
+    PaginationInfo doctorPagination = getPaginationInfo(doctorList, pageNo);
+    PaginationInfo pharmacistPagination = getPaginationInfo(pharmacistList, pageNo);
+    // PaginationInfo allUsersPagination = getPaginationInfo(userService.getAllUsersWithDetails(), pageNo);
+    // model.addAttribute("allUsers", allUsersPagination.getDataToDisplay());
+    // model.addAttribute("allUsersPagination", allUsersPagination);
+    
+    model.addAttribute("adminList", adminPagination.getDataToDisplay());
+    model.addAttribute("adminPagination", adminPagination);
+    model.addAttribute("patientList", patientPagination.getDataToDisplay());
+    model.addAttribute("patientPagination", patientPagination);
+    model.addAttribute("doctorList", doctorPagination.getDataToDisplay());
+    model.addAttribute("doctorPagination", doctorPagination);
+    model.addAttribute("pharmacistList", pharmacistPagination.getDataToDisplay());
+    model.addAttribute("pharmacistPagination", pharmacistPagination);
 
-        // Uncomment below if using pagination later:
-        /*
-        model.addAttribute("adminPagination", getPaginationInfo(adminList, pageNo));
-        model.addAttribute("adminList", getPaginationInfo(adminList, pageNo).getDataToDisplay());
+    return "adminDashboard";
+}
 
-        model.addAttribute("patientPagination", getPaginationInfo(patientList, pageNo));
-        model.addAttribute("patientList", getPaginationInfo(patientList, pageNo).getDataToDisplay());
+    
 
-        model.addAttribute("doctorPagination", getPaginationInfo(doctorList, pageNo));
-        model.addAttribute("doctorList", getPaginationInfo(doctorList, pageNo).getDataToDisplay());
-
-        model.addAttribute("pharmacistPagination", getPaginationInfo(pharmacistList, pageNo));
-        model.addAttribute("pharmacistList", getPaginationInfo(pharmacistList, pageNo).getDataToDisplay());
-        */
-
-        return "adminDashboard";
-    }
 
     @PostMapping("/adduser")
     public String saveUserInformation(@RequestParam("userId") String userId,
@@ -356,36 +359,34 @@ public class AdminController {
 
         model.addAttribute("message", message);
 
-        List<User> adminList = userService.getAdminList();
-        List<Patient> patientList = patientService.getAllPatients();
-        List<Doctor> doctorList = doctorService.getAllDoctors();
-        List<Pharmacist> pharmacistList = pharmacistService.getListPharmacist();
+        // Refresh lists after adding user
+List<User> adminList = userService.getAdminList();
+List<Patient> patientList = patientService.getAllPatients();
+List<Doctor> doctorList = doctorService.getAllDoctors();
+List<Pharmacist> pharmacistList = pharmacistService.getListPharmacist();
 
-        model.addAttribute("adminList", adminList);
-        model.addAttribute("patientList", patientList);
-        model.addAttribute("doctorList", doctorList);
-        model.addAttribute("pharmacistList", pharmacistList);
+// Now apply pagination to updated lists
+PaginationInfo adminPagination = getPaginationInfo(adminList, 1);
+PaginationInfo patientPagination = getPaginationInfo(patientList, 1);
+PaginationInfo doctorPagination = getPaginationInfo(doctorList, 1);
+PaginationInfo pharmacistPagination = getPaginationInfo(pharmacistList, 1);
 
-        // Pagination logic - currently commented out
-        /*
-        model.addAttribute("adminPagination", getPaginationInfo(adminList, pageNo));
-        model.addAttribute("adminList", getPaginationInfo(adminList, pageNo).getDataToDisplay());
+// Add to model
+model.addAttribute("adminList", adminPagination.getDataToDisplay());
+model.addAttribute("adminPagination", adminPagination);
+model.addAttribute("patientList", patientPagination.getDataToDisplay());
+model.addAttribute("patientPagination", patientPagination);
+model.addAttribute("doctorList", doctorPagination.getDataToDisplay());
+model.addAttribute("doctorPagination", doctorPagination);
+model.addAttribute("pharmacistList", pharmacistPagination.getDataToDisplay());
+model.addAttribute("pharmacistPagination", pharmacistPagination);
 
-        model.addAttribute("patientPagination", getPaginationInfo(patientList, pageNo));
-        model.addAttribute("patientList", getPaginationInfo(patientList, pageNo).getDataToDisplay());
-
-        model.addAttribute("doctorPagination", getPaginationInfo(doctorList, pageNo));
-        model.addAttribute("doctorList", getPaginationInfo(doctorList, pageNo).getDataToDisplay());
-
-        model.addAttribute("pharmacistPagination", getPaginationInfo(pharmacistList, pageNo));
-        model.addAttribute("pharmacistList", getPaginationInfo(pharmacistList, pageNo).getDataToDisplay());
-        */
 
         return "adminDashboard";
     }
 
     // Commented for now since pagination is disabled
-    /*
+    
     private PaginationInfo getPaginationInfo(List<?> dataList, int pageNo) {
         int pageSize = 5;
         int totalItems = dataList.size();
@@ -399,5 +400,81 @@ public class AdminController {
         return new PaginationInfo(pageData, pageSize, pageNo, totalPages,
                 Math.max(1, pageNo - 1), Math.min(totalPages, pageNo + 1));
     }
-    */
+
+    @PostMapping("/edituser")
+    public String editUser(@RequestParam("userId") String userId,
+                           @RequestParam("userFullName") String name,
+                           @RequestParam("contact") String contact,
+                           @RequestParam("userEmail") String email,
+                           @RequestParam("role") String role,
+                           @RequestParam(value = "address", required = false) String address,
+                           @RequestParam(value = "emergencyContact", required = false) String emergencyContact,
+                           @RequestParam(value = "sensorId", required = false) String sensorId,
+                           @RequestParam(value = "doctorHospital", required = false) String doctorHospital,
+                           @RequestParam(value = "doctorPosition", required = false) String doctorPosition,
+                           @RequestParam(value = "pharmacistHospital", required = false) String pharmacistHospital,
+                           @RequestParam(value = "pharmacistPosition", required = false) String pharmacistPosition,
+                           Model model) throws ExecutionException, InterruptedException {
+    
+        String message = "";
+    
+        switch (role) {
+            case "PATIENT":
+                Patient patient = new Patient(userId, name, "", contact, role, email,
+                        address, emergencyContact, sensorId, "", "Under Surveillance");
+                message = patientService.updatePatient(patient);
+                break;
+    
+            case "DOCTOR":
+                Doctor doctor = new Doctor(userId, name, "", contact, role, email, doctorHospital, doctorPosition);
+                message = doctorService.updateDoctor(doctor);
+                break;
+    
+            case "PHARMACIST":
+                Pharmacist pharmacist = new Pharmacist(userId, name, "", contact, role, email, pharmacistHospital, pharmacistPosition);
+                message = pharmacistService.updatePharmacist(pharmacist);
+                break;
+    
+            default:
+                User user = new User(userId, name, "", contact, role, email);
+                message = userService.updateUser(user);
+                break;
+        }
+    
+        model.addAttribute("message", message);
+        return "redirect:/admin";
+    }
+    
+
+@PostMapping("/deleteuser")
+public String deleteUser(@RequestParam("userIdToBeDelete") String userId,
+                         @RequestParam("userRoleToBeDelete") String role,
+                         RedirectAttributes redirectAttributes) {
+    String message;
+    try {
+        switch (role) {
+            case "PATIENT":
+                message = patientService.deletePatient(userId);
+                break;
+            case "DOCTOR":
+                message = doctorService.deleteDoctor(userId);
+                break;
+            case "PHARMACIST":
+                message = pharmacistService.deletePharmacist(userId);
+                break;
+            default:
+                message = userService.deleteUser(userId);
+                break;
+        }
+        redirectAttributes.addFlashAttribute("message", message);
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("message", "Error deleting user: " + e.getMessage());
+    }
+
+    return "redirect:/admin";
 }
+
+
+    
+    
+} 

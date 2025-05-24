@@ -178,32 +178,38 @@ public class UserRepository implements SHSRDAO<User> {
     }
 
     @Override
-    public String update(User user) {
-        System.out.println("Updating user: " + user.getUserId());
+public String update(User user) {
+    System.out.println("Updating user: " + user.getUserId());
 
-        Optional<User> optionalUser = mongoUserRepository.findById(user.getUserId());
+    Optional<User> optionalUser = mongoUserRepository.findById(user.getUserId());
 
-        if (optionalUser.isPresent()) {
-            User existingUser = optionalUser.get();
+    if (optionalUser.isPresent()) {
+        User existingUser = optionalUser.get();
 
-            if (user.getName() != null && !user.getName().isEmpty()) {
-                existingUser.setName(user.getName());
-            }
-
-            if (user.getContact() != null && !user.getContact().isEmpty()) {
-                existingUser.setContact(user.getContact());
-            }
-
-            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                existingUser.setEmail(user.getEmail());
-            }
-
-            mongoUserRepository.save(existingUser);
-            return existingUser.getUserId();
+        if (user.getName() != null && !user.getName().isEmpty()) {
+            existingUser.setName(user.getName());
         }
 
-        return null;
+        if (user.getContact() != null && !user.getContact().isEmpty()) {
+            existingUser.setContact(user.getContact());
+        }
+
+        if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+            existingUser.setEmail(user.getEmail());
+        }
+
+        // Optional: update password only if needed
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            existingUser.setPassword(user.getPassword());
+        }
+
+        mongoUserRepository.save(existingUser);
+        return "User updated successfully.";
     }
+
+    return "Error: User not found.";
+}
+
 
     @Override
     public String delete(String id) {

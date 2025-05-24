@@ -1,3 +1,4 @@
+//FireStore//
 // package com.SmartHealthRemoteSystem.SHSR.User.Patient;
 
 // import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.SensorData;
@@ -211,6 +212,7 @@
 // }
 
 
+//MongoDB//
 package com.SmartHealthRemoteSystem.SHSR.User.Patient;
 
 import java.util.ArrayList;
@@ -262,53 +264,52 @@ public class PatientRepository implements SHSRDAO<Patient> {
     }
 
     @Override
-    public List<Patient> getAll() throws ExecutionException, InterruptedException {
-        List<Patient> patientList = new ArrayList<>();
-        List<Patient> allPatients = mongoPatientRepository.findAll();
+public List<Patient> getAll() throws ExecutionException, InterruptedException {
+    System.out.println("✅ PatientRepository: getAll() called");
+    List<Patient> patientList = new ArrayList<>();
+    List<Patient> allPatients = mongoPatientRepository.findAll();
 
-        for (Patient patient : allPatients) {
-            try {
-                Optional<User> userOpt = mongoUserRepository.findById(patient.getUserId());
-                if (userOpt.isPresent()) {
-                    User user = userOpt.get();
-                    patient.setName(user.getName());
-                    patient.setPassword(user.getPassword());
-                    patient.setContact(user.getContact());
-                    patient.setRole(user.getRole());
-                    patient.setEmail(user.getEmail());
-                }
-            } catch (Exception e) {
-                LOGGER.warning("User details could not be retrieved for patient ID: " + patient.getUserId());
-            }
-            patientList.add(patient);
-        }
-        return patientList;
-    }
+    for (Patient patient : allPatients) {
+        System.out.println("🔁 Checking patient: " + patient.getUserId());
 
-    @Override
-    public String save(Patient patient) throws ExecutionException, InterruptedException {
-        System.out.println(" Saving patient with ID: " + patient.getUserId());
+        Optional<User> userOpt = mongoUserRepository.findById(patient.getUserId());
 
-        if (mongoPatientRepository.existsById(patient.getUserId())) {
-            return "Error: Patient with ID " + patient.getUserId() + " already exists.";
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            System.out.println("✅ User found: " + user.getUserId() + " - " + user.getName());
+
+            patient.setName(user.getName());
+            patient.setPassword(user.getPassword());
+            patient.setContact(user.getContact());
+            patient.setRole(user.getRole());
+            patient.setEmail(user.getEmail());
+        } else {
+            System.out.println("❌ No user found for patient: " + patient.getUserId());
         }
 
-        // Save base User
-        User user = new User(
-                patient.getUserId(),
-                patient.getName(),
-                patient.getPassword(),
-                patient.getContact(),
-                patient.getRole(),
-                patient.getEmail()
-        );
-        mongoUserRepository.save(user);
-
-        // Save Patient
-        mongoPatientRepository.save(patient);
-
-        return "Patient saved successfully.";
+        patientList.add(patient);
     }
+
+    return patientList;
+}
+
+    
+
+
+@Override
+public String save(Patient patient) throws ExecutionException, InterruptedException {
+    System.out.println("📝 Saving patient with ID: " + patient.getUserId());
+
+    // if (mongoPatientRepository.existsById(patient.getUserId())) {
+    //     return "Error: Patient with ID " + patient.getUserId() + " already exists.";
+    // }
+
+
+    mongoPatientRepository.save(patient);
+
+    return "Patient saved successfully.";
+}
+
 
     @Override
     public String update(Patient patient) throws ExecutionException, InterruptedException {
@@ -316,6 +317,7 @@ public class PatientRepository implements SHSRDAO<Patient> {
 
         if (existingPatientOpt.isPresent()) {
             Patient existingPatient = existingPatientOpt.get();
+            
 
             if (patient.getAddress() != null && !patient.getAddress().isEmpty()) {
                 existingPatient.setAddress(patient.getAddress());
@@ -363,6 +365,6 @@ public class PatientRepository implements SHSRDAO<Patient> {
     }
 
     public Optional<Patient> findByEmail(String email) {
-        return mongoPatientRepository.findByEmail(email);
+        return mongoPatientRepository.findById(email);
     }
 }

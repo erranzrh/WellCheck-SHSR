@@ -109,3 +109,51 @@
     
     
 // }
+
+
+//MongoDB//
+package com.SmartHealthRemoteSystem.SHSR.ReadSensorData;
+
+import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.SensorData;
+import com.SmartHealthRemoteSystem.SHSR.Service.DoctorService;
+import com.SmartHealthRemoteSystem.SHSR.Service.SensorDataService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/Sensor-data")
+public class ReadSensorDataController {
+
+    @Autowired
+    private SensorDataService sensorDataService;
+
+    @Autowired
+    private DoctorService doctorService;
+
+    @PostMapping("/save")
+    public String saveSensor(@RequestBody SensorData sensorData) {
+        return sensorDataService.saveSensorData(sensorData);
+    }
+
+    @GetMapping("/get-sensor-data/{sensorDataId}")
+    public SensorData getSensor(@PathVariable String sensorDataId) {
+        return sensorDataService.getSensorById(sensorDataId);
+    }
+
+    @PutMapping("/update")
+    public boolean updateSensor(@RequestBody SensorData sensorData) {
+        return sensorDataService.updateSensorData(sensorData);
+    }
+
+    @DeleteMapping("/delete/{sensorDataId}")
+    public boolean deleteSensor(@PathVariable String sensorDataId) {
+        return sensorDataService.deleteSensorData(sensorDataId);
+    }
+
+    @GetMapping("/all")
+    public List<SensorData> getAllSensors() {
+        return sensorDataService.getAllSensorData();
+    }
+}

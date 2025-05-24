@@ -105,3 +105,39 @@
 //         }
 //     }
 // }
+
+//MongoDB//
+package com.SmartHealthRemoteSystem.SHSR.Sensor.Service;
+
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.stereotype.Service;
+import org.bson.Document;
+
+@Service
+public class UniqueKeyGenerator {
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    public String generateAndStore() {
+        String uniqueKey = UUID.randomUUID().toString();
+
+        // Check if key exists
+        Query query = new Query(Criteria.where("key").is(uniqueKey));
+        boolean exists = mongoTemplate.exists(query, "Sensor");
+
+        if (exists) {
+            return generateAndStore(); // regenerate if exists
+        }
+
+        Document keyDoc = new Document("key", uniqueKey)
+                .append("sensorId", null);
+
+        mongoTemplate.insert(keyDoc, "Sensor");
+        return uniqueKey;
+    }
+}

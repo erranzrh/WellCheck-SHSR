@@ -91,15 +91,12 @@ and open the template in the editor.
                     <th>Assigned by Doctor</th>
                     <th>Patient ID</th>
                     <th>Patient Name</th>
-                    <th>Status
-                        <!-- <form th:action="@{/filter}" th:object="${filterForm}">
-                            <select id="filterSelect" th:field="*{status}">
-                              <option value="all">All</option>
-                              <option value="released">Released</option>
-                              <option value="surveillance">Under Surveillance</option>
-                            </select>
-                            <button type="submit">Filter</button>
-                          </form> -->
+                    <th>Email</th>
+                    <th>Contact</th>
+                    <th>Address</th>
+                    <th>Status</th>
+
+                       
                         <select id="filterSelect">
                             <option value="all">All</option>
                             <option value="Released">Released</option>
@@ -109,20 +106,41 @@ and open the template in the editor.
                     </thead>
                     <tbody>
 
-                    <tr th:each="patient:${patientList}">
+                       <tr th:each="patient, iterStat : ${patientList}">
+                            <td th:text="${startIndex + iterStat.index + 1}">1</td>
+                            <td th:text="${doctor.name}"></td>
+                            <td th:text="${patient.userId}"></td>
+                            <td th:text="${patient.name}"></td>
+                            <td th:text="${patient.email}"></td>
+                            <td th:text="${patient.contact}"></td>
+                            <td th:text="${patient.address}"></td>
+                            <td th:text="${patient.status}"></td>
+                        </tr>
 
-                        <td th:text="${patientStat.index}+1"></td>
-                        <td th:text="${patient.assigned_doctor}"></td>
-                        <td th:text="${patient.userId}"></td>
-                        <td th:text="${patient.name}"></td>
-                        <td th:text="${patient.Status}"></td>
+
                         
-                    </tr>
 
 
                     </tbody>
 
                 </table>
+
+                <!-- ✅ Pagination Controls: Place here -->
+<nav>
+    <ul class="pagination justify-content-center">
+      <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+        <a class="page-link" th:href="@{/patient/list(pageNo=${currentPage - 1}, pageSize=${pageSize})}">Previous</a>
+      </li>
+      <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+          th:classappend="${i == currentPage} ? 'active'">
+        <a class="page-link" th:href="@{/patient/list(pageNo=${i}, pageSize=${pageSize})}" th:text="${i + 1}">1</a>
+      </li>
+      <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+        <a class="page-link" th:href="@{/patient/list(pageNo=${currentPage + 1}, pageSize=${pageSize})}">Next</a>
+      </li>
+    </ul>
+  </nav>
+  <!-- ✅ End Pagination Controls -->
                 
 
                 <div class="confirmation_page">

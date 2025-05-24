@@ -143,3 +143,78 @@
 //         return statusList;
 //     }
 // }
+
+
+
+//MongoDB//
+
+package com.SmartHealthRemoteSystem.SHSR.Sensor.Service;
+
+import com.SmartHealthRemoteSystem.SHSR.Sensor.Model.Sensor;
+import com.SmartHealthRemoteSystem.SHSR.Sensor.Model.PatientSensorStatus;
+import com.SmartHealthRemoteSystem.SHSR.Sensor.Repository.SensorRepository;
+import com.SmartHealthRemoteSystem.SHSR.Sensor.RegistrationResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Criteria;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class SensorRegistrationHandler {
+
+    @Autowired
+    private SensorRepository sensorRepository;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    public RegistrationResult registerSensor(String patientID, String patientName, String sensorID, String uniqueKey) {
+        Sensor keySensor = sensorRepository.findByUniqueKey(uniqueKey);
+        if (keySensor == null || keySensor.getSensorDataId() != null) {
+            return new RegistrationResult(false, "Invalid or already used unique key");
+        }
+
+        keySensor.setSensorDataId(sensorID);
+        sensorRepository.save(keySensor);
+
+        Sensor newSensor = new Sensor(sensorID, uniqueKey, 0, 0, 0, 0);
+        newSensor.setTimestamp(Instant.now());
+
+        mongoTemplate.save(newSensor, "SensorData");
+
+        return new RegistrationResult(true, null);
+    }
+
+    public List<PatientSensorStatus> getAllPatientSensorStatus() {
+        List<PatientSensorStatus> statusList = new ArrayList<>();
+        List<Sensor> sensors = sensorRepository.findAll();
+
+        for (Sensor sensor : sensors) {
+            if (sensor.getSensorDataId() == null) {
+                statusList.add(new PatientSensorStatus(
+                        sensor.getUniqueKey(),
+                        "",          // patientId
+                        "N/A",       // patientName
+                        null,        // sensorId
+                        "-"          // registeredHospital
+                ));
+            } else {
+                // You can enhance this later by joining with patient info via patientService
+                statusList.add(new PatientSensorStatus(
+                        sensor.getUniqueKey(),
+                        "?",                     // dummy patientId (replace with real if you integrate)
+                        "Bound to patient",      // dummy name
+                        sensor.getSensorDataId(),
+                        "Hospital X"             // dummy hospital name
+                ));
+            }
+        }
+
+        return statusList;
+    }
+}

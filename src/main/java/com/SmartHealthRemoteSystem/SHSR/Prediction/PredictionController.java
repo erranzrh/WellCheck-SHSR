@@ -156,3 +156,96 @@
 //         return "DoctorPredictionHistory";
 //     }
 // }
+
+package com.SmartHealthRemoteSystem.SHSR.Prediction;
+
+import com.SmartHealthRemoteSystem.SHSR.Service.DoctorService;
+import com.SmartHealthRemoteSystem.SHSR.Service.PatientService;
+import com.SmartHealthRemoteSystem.SHSR.Service.PredictionService;
+import com.SmartHealthRemoteSystem.SHSR.User.Doctor.Doctor;
+import com.SmartHealthRemoteSystem.SHSR.User.Patient.Patient;
+import com.SmartHealthRemoteSystem.SHSR.WebConfiguration.MyUserDetails;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+
+@Controller
+public class PredictionController {
+
+    @Autowired private PredictionService predictionService;
+    @Autowired private PredictionRestController predictionRestController;
+    @Autowired private PatientService patientService;
+    @Autowired private DoctorService doctorService;
+
+    @PostMapping("/DiagnosisResult")
+    public String makePrediction(@RequestParam("symptom[]") List<String> symptoms,
+                                 @RequestParam("patientId") String patientId,
+                                 Model model) throws ExecutionException, InterruptedException {
+        ResponseEntity<String> response = predictionRestController.callDjangoAPI(symptoms);
+        String predictionResult = response.getBody();
+        JsonObject jsonObject = new Gson().fromJson(predictionResult, JsonObject.class);
+        JsonArray topDiseasesArray = jsonObject.getAsJsonArray("top_diseases");
+
+        List<String> diseases = new ArrayList<>();
+        List<Float> probabilities = new ArrayList<>();
+
+        for (int i = 0; i < topDiseasesArray.size(); i++) {
+            String diseaseWithProbability = topDiseasesArray.get(i).getAsString();
+            String[] parts = diseaseWithProbability.split(": ");
+            diseases.add(parts[0]);
+            probabilities.add(Float.parseFloat(parts[1].replace("%", "")));
+        }
+
+        Prediction prediction = new Prediction();
+        prediction.setDiagnosisList(diseases);
+        prediction.setProbabilityList(probabilities);
+        prediction.setSymptomsList(symptoms);
+        String timeCreated = predictionService.createPrediction(prediction, patientId);
+
+        Patient patient = patientService.getPatientById(patientId);
+        Doctor doctor = doctorService.getDoctor(patient.getAssigned_doctor());
+
+
+        List<String> formattedSymptoms = new ArrayList<>();
+        for (String symptom : symptoms) {
+            String[] words = symptom.split("_");
+            StringBuilder formatted = new StringBuilder();
+            for (String word : words) {
+                formatted.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1).toLowerCase())
+                        .append(" ");
+            }
+            formattedSymptoms.add(formatted.toString().trim());
+        }
+
+        model.addAttribute("diseases", diseases);
+        model.addAttribute("probabilities", probabilities);
+        model.addAttribute("symptoms", formattedSymptoms);
+        model.addAttribute("timeCreated", timeCreated);
+        model.addAttribute("patient", patient);
+        model.addAttribute("doctor", doctor);
+
+        return "DiagnosisResult";
+    }
+
+    @GetMapping("/predictionHistory")
+    public String showPredictionHistory(@RequestParam("patientId") String patientId, Model model) throws ExecutionException, InterruptedException {
+        Patient patient = patientService.getPatientById(patientId);
+        Doctor doctor = doctorService.getDoctor(patient.getAssigned_doctor());
+
+        List<Prediction> predictionList = predictionService.getPatientPredictions(patientId);
+
+        model.addAttribute("predictionList", predictionList);
+        model.addAttribute("patient", patient);
+        model.addAttribute("doctor", doctor);
+
+        return "PredictionHistory";
+    }
+} 

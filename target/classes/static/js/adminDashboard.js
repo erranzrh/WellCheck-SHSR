@@ -1,14 +1,19 @@
-function validateForm() {
-    let userId = document.getElementById("userId").value;
-    let userFullName = document.getElementById("userFullName").value;
 
-    if (!userId || !userFullName) {
+document.addEventListener("DOMContentLoaded", function () {
+function validateForm() {
+    let userId = document.getElementById("userId").value.trim();
+    let userFullName = document.getElementById("userFullName").value.trim();
+    let contact = document.getElementById("contact").value.trim();
+    let userEmail = document.getElementById("userEmail").value.trim();
+
+    if (!userId || !userFullName || !contact || !userEmail) {
         alert("Please fill in all required fields.");
         return false;
     }
 
     return true;
 }
+
 
 const userTable = document.getElementsByClassName('user_table');
 const buttonTable = document.querySelectorAll('.admin_navBtn');
@@ -69,12 +74,15 @@ const confirmAddUserBtn = document.getElementById("confirmAddUserBtn"),
     cancelDeleteUserBtn = document.getElementById("cancelDeleteUserBtn"),
     editUserBtn = document.querySelectorAll(".editUserBtn");
 
-addUserBtn.addEventListener("click", function () {
-    document.querySelector(".add_user_page-title").classList.add("active-title");
-    document.getElementsByClassName("add_user_page")[0].classList.add("user_page_active");
-    document.getElementsByClassName("admin_main_content")[0].style.display = "none";
-    document.getElementById("action").value = "add";
-});
+    addUserBtn.addEventListener("click", function () {
+        document.getElementById("userFormTitle").textContent = "Add User";
+        document.getElementsByClassName("add_user_page")[0].classList.add("user_page_active");
+        document.getElementsByClassName("admin_main_content")[0].style.display = "none";
+        document.getElementById("action").value = "add";
+        document.getElementById("adduser").action = "/admin/adduser";
+        
+    }); 
+     
 
 confirmAddUserBtn.addEventListener("click", function () {
     if (validateForm()) {
@@ -124,8 +132,28 @@ deleteUserBtn.forEach((e) => {
     e.addEventListener("click", function () {
         document.getElementsByClassName("confirmation_deleteUser_page")[0].classList.add("user_page_active");
         const row = this.closest("tr");
-        document.getElementById("userIdToBeDelete").value = row.getElementsByTagName("td")[0].innerText;
-        document.getElementById("userRoleToBeDelete").value = row.getElementsByTagName("td")[4].innerText;
+        // document.getElementById("userIdToBeDelete").value = row.getElementsByTagName("td")[0].innerText;
+        // document.getElementById("userRoleToBeDelete").value = row.getElementsByTagName("td")[4].innerText;
+        const userIdCell = row.querySelector('[data-column="userId"]');
+let role = "";
+
+if (row.closest("#patientTable")) {
+    role = "PATIENT";
+} else if (row.closest("#doctorTable")) {
+    role = "DOCTOR";
+} else if (row.closest("#pharmacistTable")) {
+    role = "PHARMACIST";
+} else if (row.closest("#adminTable")) {
+    // fallback in case role column is available
+    const roleCell = row.querySelector('[data-column="role"]');
+    role = roleCell ? roleCell.innerText.trim().toUpperCase() : "ADMIN";
+}
+
+document.getElementById("userIdToBeDelete").value = userIdCell ? userIdCell.innerText.trim() : '';
+document.getElementById("userRoleToBeDelete").value = role;
+
+
+
     });
 });
 
@@ -145,6 +173,7 @@ editUserBtn.forEach((e) => {
         const row = this.closest("tr");
         const cells = row.getElementsByTagName("td");
 
+        // Prefill common fields
         document.getElementById("userId").value = cells[0].innerText;
         document.getElementById("userId").readOnly = true;
         document.getElementById("userFullName").value = cells[1].innerText;
@@ -156,8 +185,8 @@ editUserBtn.forEach((e) => {
         if (editClassName.includes('editPatient')) {
             userForm[0].classList.add("activeForm");
             radioFormInput[1].checked = true;
-            document.getElementById("address").value = cells[4].innerText;
-            document.getElementById("emergencyContact").value = cells[5].innerText;
+            document.getElementById("emergencyContact").value = cells[4].innerText;
+            document.getElementById("address").value = cells[5].innerText;
             document.getElementById("sensorId").value = cells[6].innerText;
         } else if (editClassName.includes('editDoctor')) {
             userForm[1].classList.add("activeForm");
@@ -173,13 +202,17 @@ editUserBtn.forEach((e) => {
             radioFormInput[0].checked = true;
         }
 
-        document.getElementsByClassName("add_user_page-title")[1].classList.add("active-title");
-        document.getElementsByClassName("add_user_page-title")[0].classList.remove("active-title");
+        // ✅ Open the form and switch title text
+        document.getElementById("adduser").action = "/admin/edituser";
+
+        document.getElementById("userFormTitle").textContent = "Edit User";
         document.getElementsByClassName("add_user_page")[0].classList.add("user_page_active");
         document.getElementsByClassName("admin_main_content")[0].style.display = "none";
         document.getElementById("action").value = "update";
+
     });
 });
+
 
 // Search filter logic (unchanged)
 function handleSearchInput(tableId, query) {
@@ -229,3 +262,15 @@ document.getElementById('search-input-pharmacist').addEventListener('input', fun
     resetTableDisplay('pharmacistTable');
     handleSearchInput('pharmacistTable', query);
 });
+
+document.querySelector(".alluserBtn").addEventListener("click", function () {
+    document.querySelectorAll(".user_table").forEach(div => div.style.display = "none");
+    document.querySelectorAll(".admin_navBtn").forEach(btn => btn.classList.remove("admin_navBtn_active"));
+    this.classList.add("admin_navBtn_active");
+    document.querySelectorAll(".user_table")[5].style.display = "block"; // adjust index if needed
+});
+
+});
+
+
+  

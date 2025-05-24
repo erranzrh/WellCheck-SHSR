@@ -47,3 +47,65 @@
 //     return PredictionList.stream().max(Comparator.comparing(Prediction::getTimestamp));
 //   }
 // }
+
+
+
+//MongoDB//
+package com.SmartHealthRemoteSystem.SHSR.Service;
+
+import com.SmartHealthRemoteSystem.SHSR.Prediction.Prediction;
+import com.SmartHealthRemoteSystem.SHSR.User.Patient.Patient;
+import com.SmartHealthRemoteSystem.SHSR.User.Patient.PatientRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+
+@Service
+public class PredictionService {
+
+    @Autowired
+    private PatientRepository patientRepository;
+
+    public String createPrediction(Prediction prediction, String patientId) throws ExecutionException, InterruptedException {
+        Patient patient = patientRepository.get(patientId);
+        if (patient == null) {
+            throw new RuntimeException("Patient not found");
+        }
+
+        String predictionId = UUID.randomUUID().toString();
+        prediction.setPredictionID(predictionId);
+        prediction.setTimestamp(Instant.now());
+
+        if (patient.getPrediction() == null) {
+            patient.setPrediction(new HashMap<>());
+        }
+        patient.getPrediction().put(predictionId, prediction);
+       
+        System.out.println("📌 Storing prediction ID: " + predictionId);
+        System.out.println("📝 Prediction data: " + prediction);
+        System.out.println("🧑‍⚕️ Patient ID: " + patientId);
+        System.out.println("🧠 Current prediction map size: " + patient.getPrediction().size());
+
+        patientRepository.save(patient);
+        return prediction.getTimestamp().toString();
+    }
+
+    public List<Prediction> getPatientPredictions(String patientId) throws ExecutionException, InterruptedException {
+        Patient patient = patientRepository.get(patientId);
+        if (patient == null || patient.getPrediction() == null) {
+            return Collections.emptyList();
+        }
+
+        List<Prediction> predictions = new ArrayList<>(patient.getPrediction().values());
+        predictions.sort(Comparator.comparing(Prediction::getTimestamp).reversed());
+        return predictions;
+    }
+
+    public Optional<Prediction> getRecentPrediction(String patientId) throws ExecutionException, InterruptedException {
+        List<Prediction> predictions = getPatientPredictions(patientId);
+        return predictions.stream().max(Comparator.comparing(Prediction::getTimestamp));
+    }
+}

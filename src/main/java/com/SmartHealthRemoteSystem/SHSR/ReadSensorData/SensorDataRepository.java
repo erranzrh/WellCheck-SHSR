@@ -110,3 +110,129 @@
 //         return "Document with Sensor Data Id " + sensorDataId + " has been deleted";
 //     }
 // }
+
+
+//MongoDB//
+package com.SmartHealthRemoteSystem.SHSR.ReadSensorData;
+
+import com.SmartHealthRemoteSystem.SHSR.updateStatusAppointment.Service.MongoDBConnection;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+
+import org.bson.Document;
+import org.springframework.stereotype.Repository;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+@Repository
+public class SensorDataRepository {
+
+    private static final String COLLECTION_NAME = "SensorData";
+
+    public SensorData get(String sensorDataId) {
+        MongoDatabase db = MongoDBConnection.connect();
+        try {
+            Document doc = db.getCollection(COLLECTION_NAME)
+                    .find(new Document("sensorDataId", sensorDataId))
+                    .first();
+            return doc != null ? SensorData.fromDocument(doc) : null;
+        } finally {
+            MongoDBConnection.close();
+        }
+    }
+
+    public List<SensorData> getAll() {
+        MongoDatabase db = MongoDBConnection.connect();
+        List<SensorData> list = new ArrayList<>();
+        try {
+            for (Document doc : db.getCollection(COLLECTION_NAME).find()) {
+                list.add(SensorData.fromDocument(doc));
+            }
+        } finally {
+            MongoDBConnection.close();
+        }
+        return list;
+    }
+
+    public String save(SensorData sensorData) {
+        MongoDatabase db = MongoDBConnection.connect();
+        try {
+            sensorData.setTimestamp(Instant.now());
+            db.getCollection(COLLECTION_NAME).insertOne(sensorData.toDocument());
+            return sensorData.getSensorDataId();
+        } finally {
+            MongoDBConnection.close();
+        }
+    }
+
+    public String update(SensorData sensorData) {
+        MongoDatabase db = MongoDBConnection.connect();
+        try {
+            Document updateDoc = new Document();
+            updateDoc.append("heart_Rate", sensorData.getHeart_Rate());
+            updateDoc.append("bodyTemperature", sensorData.getBodyTemperature());
+            updateDoc.append("ecgReading", sensorData.getEcgReading());
+            updateDoc.append("oxygenReading", sensorData.getOxygenReading());
+            updateDoc.append("timestamp", Instant.now());
+
+            db.getCollection(COLLECTION_NAME)
+              .updateOne(new Document("sensorDataId", sensorData.getSensorDataId()),
+                         new Document("$set", updateDoc));
+
+            return "Updated successfully.";
+        } finally {
+            MongoDBConnection.close();
+        }
+    }
+
+    public String appendHistory(String sensorDataId, SensorData historyEntry) {
+        MongoDatabase db = MongoDBConnection.connect();
+        try {
+            Document historyDoc = new Document()
+                    .append("heart_Rate", historyEntry.getHeart_Rate())
+                    .append("bodyTemperature", historyEntry.getBodyTemperature())
+                    .append("ecgReading", historyEntry.getEcgReading())
+                    .append("oxygenReading", historyEntry.getOxygenReading())
+                    .append("timestamp", Instant.now());
+
+            db.getCollection(COLLECTION_NAME)
+              .updateOne(new Document("sensorDataId", sensorDataId),
+                         new Document("$push", new Document("history", historyDoc)));
+
+            return "History entry added.";
+        } finally {
+            MongoDBConnection.close();
+        }
+    }
+
+    public String delete(String sensorDataId) {
+        MongoDatabase db = MongoDBConnection.connect();
+        try {
+            db.getCollection(COLLECTION_NAME)
+              .deleteOne(new Document("sensorDataId", sensorDataId));
+            return "Deleted sensorDataId: " + sensorDataId;
+        } finally {
+            MongoDBConnection.close();
+        }
+    }
+
+    public boolean addToHistory(String sensorDataId, HistorySensorData newEntry) {
+    MongoDatabase db = MongoDBConnection.connect();
+    try {
+        Document historyDoc = newEntry.toDocument();
+
+        db.getCollection(COLLECTION_NAME).updateOne(
+            Filters.eq("sensorDataId", sensorDataId),
+            Updates.push("history", historyDoc)
+        );
+
+        return true;
+    } finally {
+        MongoDBConnection.close();
+    }
+}
+
+}

@@ -112,3 +112,12 @@
 //         return "Document with Health Id " + healthStatusId + " has been deleted";
 //     }
 // }
+
+package com.SmartHealthRemoteSystem.SHSR.SendDailyHealth;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+import java.util.List;
+
+public interface HealthStatusRepository extends MongoRepository<HealthStatusDocumentWrapper, String> {
+    List<HealthStatusDocumentWrapper> findByPatientId(String patientId);
+}

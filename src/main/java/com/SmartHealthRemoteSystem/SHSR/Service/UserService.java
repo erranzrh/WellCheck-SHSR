@@ -64,6 +64,7 @@
 // }
 package com.SmartHealthRemoteSystem.SHSR.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -73,16 +74,28 @@ import org.springframework.stereotype.Service;
 
 import com.SmartHealthRemoteSystem.SHSR.Repository.SHSRDAO;
 import com.SmartHealthRemoteSystem.SHSR.User.User;
+// import com.SmartHealthRemoteSystem.SHSR.User.UserWithDetails;
 
 @Service
 public class UserService {
     private final SHSRDAO<User> userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PatientService patientService;
+    private final DoctorService doctorService;
+    private final PharmacistService pharmacistService;
 
-    public UserService(SHSRDAO<User> userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+
+    public UserService(SHSRDAO<User> userRepository, PasswordEncoder passwordEncoder,
+    PatientService patientService,
+    DoctorService doctorService,
+    PharmacistService pharmacistService) {
+this.userRepository = userRepository;
+this.passwordEncoder = passwordEncoder;
+this.patientService = patientService;
+this.doctorService = doctorService;
+this.pharmacistService = pharmacistService;
+}
+
 
     public String updateUser(User user) throws ExecutionException, InterruptedException {
         return userRepository.update(user);
@@ -123,11 +136,44 @@ public class UserService {
                 .filter(user -> "ADMIN".equals(user.getRole()))
                 .collect(Collectors.toList());
     }
-
+ 
     public List<User> searchUsers(String keyword) throws ExecutionException, InterruptedException {
         return userRepository.getAll()
                 .stream()
                 .filter(user -> user.getUserId().contains(keyword) || user.getName().contains(keyword))
                 .collect(Collectors.toList());
     }
+    // public List<UserWithDetails> getAllUsersWithDetails() throws ExecutionException, InterruptedException {
+    //     List<User> users = userRepository.getAll();
+    //     List<UserWithDetails> userWithDetailsList = new ArrayList<>();
+    
+    //     for (User user : users) {
+    //         Object details = null;
+    
+    //         switch (user.getRole()) {
+    //             case "PATIENT":
+    //                 details = patientService.getPatientById(user.getUserId());
+    //                 if (details == null) details = new Object();
+    //                 break;
+    //             case "DOCTOR":
+    //                 details = doctorService.getDoctor(user.getUserId());
+    //                 if (details == null) details = new Object();
+    //                 break;
+    //             case "PHARMACIST":
+    //                 details = pharmacistService.getPharmacist(user.getUserId());
+    //                 if (details == null) details = new Object();
+    //                 break;
+    //             default:
+    //                 details = null;
+    //         }
+    
+    //         userWithDetailsList.add(new UserWithDetails(user, details));
+    //     }
+    
+    //     return userWithDetailsList;
+    // }
+    
+    
+    
+
 }

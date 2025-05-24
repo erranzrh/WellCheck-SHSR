@@ -1,3 +1,4 @@
+//Firestore//
 // // package com.SmartHealthRemoteSystem.SHSR.User.Doctor;
 
 // // import com.SmartHealthRemoteSystem.SHSR.Repository.SHSRDAO;
@@ -144,107 +145,82 @@
 //     Optional<Doctor> findByEmail(String email);
 // }
 
+
+//MongoDB//
 package com.SmartHealthRemoteSystem.SHSR.User.Doctor;
+
+import com.SmartHealthRemoteSystem.SHSR.User.MongoUserRepository;
+import com.SmartHealthRemoteSystem.SHSR.User.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-
-import com.SmartHealthRemoteSystem.SHSR.Repository.SHSRDAO;
-import com.SmartHealthRemoteSystem.SHSR.User.User;
 
 @Repository
-public class DoctorRepository implements SHSRDAO<Doctor> {
+public class DoctorRepository {
 
     @Autowired
     private MongoDoctorRepository mongoDoctorRepository;
 
     @Autowired
-    private SHSRDAO<User> userRepository;
+    private MongoUserRepository mongoUserRepository;
 
-    @Override
-    public Doctor get(String id) throws ExecutionException, InterruptedException {
-        Optional<Doctor> doctorOptional = mongoDoctorRepository.findById(id);
-        if (doctorOptional.isPresent()) {
-            Doctor doctor = doctorOptional.get();
-            User user = userRepository.get(id);
-            if (user != null) {
-                doctor.setEmail(user.getEmail());
+    // ✅ Get one doctor by ID
+    public Doctor get(String doctorId) {
+        Optional<Doctor> doctorOpt = mongoDoctorRepository.findById(doctorId);
+        if (doctorOpt.isPresent()) {
+            Doctor doctor = doctorOpt.get();
+            // Merge user info
+            mongoUserRepository.findById(doctorId).ifPresent(user -> {
                 doctor.setName(user.getName());
-                doctor.setContact(user.getContact());
                 doctor.setPassword(user.getPassword());
+                doctor.setContact(user.getContact());
                 doctor.setRole(user.getRole());
-            }
+                doctor.setEmail(user.getEmail());
+            });
             return doctor;
         }
         return null;
     }
 
-    @Override
-    public List<Doctor> getAll() throws ExecutionException, InterruptedException {
-        List<Doctor> doctorList = new ArrayList<>();
-        List<Doctor> allDoctors = mongoDoctorRepository.findAll();
-        for (Doctor doctor : allDoctors) {
-            User user = userRepository.get(doctor.getUserId());
-            if (user != null) {
-                doctor.setEmail(user.getEmail());
+    // ✅ Get all doctors
+    public List<Doctor> getAll() {
+        List<Doctor> doctors = new ArrayList<>();
+        for (Doctor doctor : mongoDoctorRepository.findAll()) {
+            mongoUserRepository.findById(doctor.getUserId()).ifPresent(user -> {
                 doctor.setName(user.getName());
-                doctor.setContact(user.getContact());
                 doctor.setPassword(user.getPassword());
+                doctor.setContact(user.getContact());
                 doctor.setRole(user.getRole());
-            }
-            doctorList.add(doctor);
+                doctor.setEmail(user.getEmail());
+            });
+            doctors.add(doctor);
         }
-        return doctorList;
+        return doctors;
     }
 
-    @Override
-    public String save(Doctor doctor) throws ExecutionException, InterruptedException {
-        if (mongoDoctorRepository.existsById(doctor.getUserId())) {
-            return "Doctor already exists.";
-        }
-
-        User user = new User(
-                doctor.getUserId(),
-                doctor.getName(),
-                doctor.getPassword(),
-                doctor.getContact(),
-                doctor.getRole(),
-                doctor.getEmail()
-        );
-
-        userRepository.save(user);
+    // ✅ Save doctor
+    public String save(Doctor doctor) {
+        User user = new User(doctor.getUserId(), doctor.getName(), doctor.getPassword(), doctor.getContact(), doctor.getRole(), doctor.getEmail());
+        mongoUserRepository.save(user);
         mongoDoctorRepository.save(doctor);
-        return "Doctor saved successfully.";
+        return doctor.getUserId();
     }
 
-    @Override
-    public String update(Doctor doctor) throws ExecutionException, InterruptedException {
-        Optional<Doctor> existingDoctor = mongoDoctorRepository.findById(doctor.getUserId());
-        if (existingDoctor.isPresent()) {
-            mongoDoctorRepository.save(doctor);
-            return userRepository.update(new User(
-                    doctor.getUserId(),
-                    doctor.getName(),
-                    doctor.getPassword(),
-                    doctor.getContact(),
-                    doctor.getRole(),
-                    doctor.getEmail()
-            ));
-        }
-        return "Doctor not found.";
-    } 
+    // ✅ Update doctor
+    public String update(Doctor doctor) {
+        User user = new User(doctor.getUserId(), doctor.getName(), doctor.getPassword(), doctor.getContact(), doctor.getRole(), doctor.getEmail());
+        mongoUserRepository.save(user);
+        mongoDoctorRepository.save(doctor);
+        return doctor.getUserId();
+    }
 
-    @Override
-    public String delete(String id) throws ExecutionException, InterruptedException {
-        mongoDoctorRepository.deleteById(id);
-        userRepository.delete(id);
-        return "Doctor deleted.";
+    // ✅ Delete doctor
+    public String delete(String doctorId) {
+        mongoDoctorRepository.deleteById(doctorId);
+        mongoUserRepository.deleteById(doctorId);
+        return doctorId;
     }
 }
-
-

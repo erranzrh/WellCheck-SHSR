@@ -63,8 +63,9 @@
                         <button type="button" class="doctorBtn admin_navBtn">Doctor</button>
                         <button type="button" class="adminBtn admin_navBtn">Admin</button>
                         <button type="button" class="pharmacistBtn admin_navBtn">Pharmacist</button>
-
                         <button type="button" class="asspatBtn admin_navBtn">Assigned Patient</button>
+                       
+
                         
                     </div>
                 </div>
@@ -112,6 +113,7 @@
                 <td class="text-center"th:text="${patient.sensorDataId}" data-column="sensorDataId"></td>
                 <td class="text-center">
                     <button type="button" class="btn btn-warning editUserBtn editPatient">Edit</button>
+                    
                     <button type="button" class="btn btn-danger deleteUserBtn">Delete</button>
                 </td>
             </tr>
@@ -120,7 +122,10 @@
     <!-- paging button start -->
     <!-- Pagination for Patient List -->
     <div class="d-flex justify-content-center align-items-center">
-        <nav aria-label="Patient Pagination" th:if="${patientPagination.totalPage > 1}">
+        <th:block th:if="${patientPagination != null and patientPagination.totalPage > 1}">
+            <nav aria-label="Patient Pagination">
+        
+        
             <ul class="pagination">
                 <li class="page-item" th:class="${patientPagination.prevPage < 1 ? 'disabled' : ''}">
                     <a class="page-link" th:href="@{/admin?pageNo=1}">&lt;</a>
@@ -133,6 +138,8 @@
                 </li>
             </ul>
         </nav>
+    
+</th:block>
     </div>
 
     <div class="d-flex justify-content-center align-items-center bg-primary bg-opacity-25 shadow-lg rounded">
@@ -159,7 +166,7 @@
                             <th scope="col" style="width: 10%;" class="text-center">User Id</th>
                             <th scope="col" style="width: 15%;" class="text-center">Name</th>
                             <th scope="col" style="width: 15%;" class="text-center">Contact No</th>
-                           
+                            <th scope="col" style="width: 10%;" class="text-center">Email</th>
                             <th scope="col" style="width: 15%;" class="text-center">Hospital</th>
                             <th scope="col" style="width: 10%;" class="text-center">Position</th>
                             <th scope="col" style="width: 50%;" class="text-center">Action</th>
@@ -172,7 +179,8 @@
                             <td class="text-center"th:text="${doctor.userId}" data-column="userId"></td>
                             <td class="text-center"th:text="${doctor.name}" data-column="name"></td>
                             <td class="text-center"th:text="${doctor.contact}" data-column="contact"></td>
-                           
+                            <td class="text-center" th:text="${doctor.email}" data-column="email"></td> <!-- Add this -->
+
                             <td class="text-center" th:text="${doctor.hospital}" data-column="hospital"></td>
                             <td class="text-center" th:text="${doctor.position}" data-column="position"></td>
                             <td class="text-center">
@@ -271,6 +279,8 @@
                     <!-- paging button end -->
                 </div>
 
+                
+
                 <!--Admin Table-->
                 <div class="user_table">
                     <!-- search bar admin -->
@@ -301,7 +311,7 @@
                            
                             <td class="text-center" th:text="${admin.role}" data-column="role"></td>
                             <td class="text-center">
-                                <button type="button" class="btn btn-warning editUserBtn editDoctor">Edit</button>
+                                <button type="button" class="btn btn-warning editUserBtn">Edit</button> <!-- For Admin -->
                                 <button type="button" class="btn btn-danger deleteUserBtn">Delete</button>
                             </td>
                         </tr>
@@ -367,8 +377,8 @@
         <!--add user page-->
         <div class="add_user_page">
             <div class="add_user_page-content">
-                <h4 class="add_user_page-title">User Form</h4>
-                <form th:action="@{/admin/adduser}" method="post" id="adduser">
+                <h4 class="add_user_page-title" id="userFormTitle">User Form</h4>
+                    <form method="post" id="adduser">
                     <input type="hidden" name="action" id="action" value="add" />
                     <div class="form-row">
                         <div class="form-group col-md-6">
@@ -487,9 +497,10 @@
                         made after this will need <br>to update it manually</p>
                 </div>
                 <div class="confirmation_deleteUser_page-buttons">
-                    <form th:action="@{/admin/deleteuser}" th:method="delete" hidden="true" id="deleteUserForm">
+                    <form th:action="@{/admin/deleteuser}" method="post" hidden="true" id="deleteUserForm">
                         <input type="text" name="userIdToBeDelete" id="userIdToBeDelete">
                         <input type="text" name="userRoleToBeDelete" id="userRoleToBeDelete">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
                     </form>
                     <button type="button" class="btn btn-primary confirmBtn" id="confirmDeleteUserBtn">Confirm</button>
                     <button type="button" class="btn btn-secondary" id="cancelDeleteUserBtn">Cancel</button>

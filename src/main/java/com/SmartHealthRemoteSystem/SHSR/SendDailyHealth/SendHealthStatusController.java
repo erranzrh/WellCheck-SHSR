@@ -174,6 +174,114 @@
 
 // }
 
+//MongoDB//
+package com.SmartHealthRemoteSystem.SHSR.SendDailyHealth;
 
+import com.SmartHealthRemoteSystem.SHSR.Prediction.Prediction;
+import com.SmartHealthRemoteSystem.SHSR.Service.*;
+import com.SmartHealthRemoteSystem.SHSR.User.Doctor.Doctor;
+import com.SmartHealthRemoteSystem.SHSR.User.Patient.Patient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
+@Controller
+@RequestMapping("/Health-status")
+public class SendHealthStatusController {
+
+    @Autowired private HealthStatusService healthStatusService;
+    @Autowired private PatientService patientService;
+    @Autowired private DoctorService doctorService;
+    @Autowired private PredictionService predictionService;
+
+    @PostMapping("/sendHealthStatus")
+    public String sendHealthStatus(@RequestParam("symptom") String symptom,
+                                   @RequestParam("patientId") String patientId,
+                                   @RequestParam("doctorId") String doctorId,
+                                   Model model) throws ExecutionException, InterruptedException {
+
+        HealthStatus hs = new HealthStatus();
+        hs.setHealthStatusId(UUID.randomUUID().toString());
+        hs.setAdditionalNotes(symptom);
+        hs.setDoctorId(doctorId);
+        hs.setTimestamp(Instant.now());
+
+        healthStatusService.createHealthStatus(hs, patientId);
+
+        Patient patient = patientService.getPatientById(patientId);
+        Doctor doctor = doctorService.getDoctor(doctorId);
+        model.addAttribute("patient", patient);
+        model.addAttribute("doctor", doctor);
+
+        return "patientDashBoard";
+    }
+
+    @PostMapping("/viewHealthStatusForm")
+    public String healthStatusForm(@RequestParam("patientId") String patientId, Model model) throws ExecutionException, InterruptedException {
+
+        Patient patient = patientService.getPatientById(patientId);
+        Doctor doctor = doctorService.getDoctor(patient.getAssigned_doctor());
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("doctor", doctor);
+
+        Optional<Prediction> predictions = predictionService.getRecentPrediction(patientId);
+        model.addAttribute("predictions", predictions.orElse(null));
+
+        List<String> formattedSymptoms = new ArrayList<>();
+        List<String> sensorBasedSymptoms = new ArrayList<>();
+
+        predictions.ifPresent(prediction -> {
+            formattedSymptoms.addAll(formatSymptoms(prediction.getSymptomsList()));
+        });
+
+        model.addAttribute("formattedSymptoms", formattedSymptoms);
+        model.addAttribute("sensorBasedSymptoms", sensorBasedSymptoms);
+
+        return "sendDailyHealthSymptom";
+    }
+
+    @GetMapping("/Diagnosis")
+    public String showDiagnosisPage(@RequestParam("patientId") String patientId,
+                                    @RequestParam("doctorId") String doctorId,
+                                    Model model) throws ExecutionException, InterruptedException {
+
+        Patient patient = patientService.getPatientById(patientId);
+        Doctor doctor = doctorService.getDoctor(doctorId);
+        List<Prediction> predictionList = predictionService.getPatientPredictions(patientId);
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("doctor", doctor);
+        model.addAttribute("predictionList", predictionList);
+
+        return "Diagnosis";
+    }
+
+    private List<String> formatSymptoms(List<String> symptoms) {
+        List<String> formattedSymptoms = new ArrayList<>();
+        for (String symptom : symptoms) {
+            formattedSymptoms.add(capitalizeWords(symptom.replace("_", " ")));
+        }
+        return formattedSymptoms;
+    }
+ 
+    private String capitalizeWords(String str) {
+        StringBuilder result = new StringBuilder();
+        boolean capitalizeNext = true;
+        for (char ch : str.toCharArray()) {
+            if (Character.isWhitespace(ch)) {
+                capitalizeNext = true;
+            } else if (capitalizeNext) {
+                ch = Character.toTitleCase(ch);
+                capitalizeNext = false;
+            }
+            result.append(ch);
+        }
+        return result.toString();
+    }
+}

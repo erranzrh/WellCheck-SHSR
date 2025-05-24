@@ -1,3 +1,5 @@
+//Firestore//
+
 // package com.SmartHealthRemoteSystem.SHSR.User.Pharmacist;
 
 // import com.SmartHealthRemoteSystem.SHSR.Medicine.Medicine;
@@ -322,102 +324,215 @@
 // }
 
 
+//MongoDB//
 package com.SmartHealthRemoteSystem.SHSR.User.Pharmacist;
 
+import com.SmartHealthRemoteSystem.SHSR.Medicine.Medicine;
+import com.SmartHealthRemoteSystem.SHSR.Service.MedicineService;
 import com.SmartHealthRemoteSystem.SHSR.Service.PharmacistService;
-import com.SmartHealthRemoteSystem.SHSR.User.Pharmacist.Pharmacist;
-
 import com.SmartHealthRemoteSystem.SHSR.WebConfiguration.MyUserDetails;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/pharmacist")
 public class PharmacistController {
 
-    private final PharmacistService pharmacistService;
+    
 
     @Autowired
-    public PharmacistController(PharmacistService pharmacistService) {
-        this.pharmacistService = pharmacistService;
-    }
+    private final PharmacistService pharmacistService;
+    private final MedicineService medicineService;
+    
+   @Autowired
+    public PharmacistController(PharmacistService pharmacistService, MedicineService medicineService) {
+    this.pharmacistService = pharmacistService;
+    this.medicineService = medicineService;
+}
 
+    // ✅ Pharmacist Dashboard
     @GetMapping
-    public String pharmacistDashboard(Model model) throws ExecutionException, InterruptedException {
+    public String pharmacistDashboard(Model model,
+                                      @RequestParam(defaultValue = "0") int pageNo,
+                                      @RequestParam(defaultValue = "5") int pageSize,
+                                      @RequestParam(defaultValue = "") String searchQuery) throws ExecutionException, InterruptedException {
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         MyUserDetails myUserDetails = (MyUserDetails) auth.getPrincipal();
-
         Pharmacist pharmacist = pharmacistService.getPharmacist(myUserDetails.getUsername());
+
+        List<Medicine> allMedicine = pharmacistService.getListMedicine(); // ✅ Fetch real medicine list
+
+        if (!searchQuery.isEmpty()) {
+            allMedicine = allMedicine.stream()
+                    .filter(m -> m.getMedName().toLowerCase().contains(searchQuery.toLowerCase()) ||
+                                 m.getMedId().toLowerCase().contains(searchQuery.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        int total = allMedicine.size();
+        int start = Math.min(pageNo * pageSize, total);
+        int end = Math.min((pageNo + 1) * pageSize, total);
+        int startIndex = pageNo * pageSize;
+
+        List<Medicine> medicineStock = allMedicine.subList(start, end);
+
+        model.addAttribute("startIndex", startIndex);
+        model.addAttribute("currentPage", pageNo);
+        model.addAttribute("totalPages", (total + pageSize - 1) / pageSize);
+        model.addAttribute("pageSize", pageSize);
         model.addAttribute("pharmacist", pharmacist);
+        model.addAttribute("medicineStock", medicineStock);
+        model.addAttribute("searchQuery", searchQuery);
 
         return "PharmacistDashboard";
     }
 
+    // Show Edit Profile Page//
+    @GetMapping("/updateProfile")
+    public String updatePharmacistProfile(Model model) throws ExecutionException, InterruptedException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        MyUserDetails myUserDetails = (MyUserDetails) auth.getPrincipal();
+        Pharmacist pharmacist = pharmacistService.getPharmacist(myUserDetails.getUsername());
+
+        model.addAttribute("pharmacist", pharmacist);
+        return "editProfilePharmacist";
+    }
+
+    // Handle Profile Update (with Image Upload)//
+    @PostMapping("/updateProfile/profile")
+    public String saveUpdatedPharmacist(@ModelAttribute Pharmacist pharmacist,
+                                        @RequestParam("imageFile") MultipartFile imageFile) throws Exception {
+
+        Pharmacist existing = pharmacistService.getPharmacist(pharmacist.getUserId());
+        existing.setName(pharmacist.getName());
+        existing.setContact(pharmacist.getContact());
+
+        if (!imageFile.isEmpty()) {
+            String base64 = Base64.getEncoder().encodeToString(imageFile.getBytes());
+            existing.setProfilePicture(base64);
+            existing.setProfilePictureType(imageFile.getContentType());
+        }
+
+        pharmacistService.updatePharmacist(existing);
+        return "redirect:/pharmacist";
+    }
 
 
-    // ------------------------- COMMENTED OUT FOR NOW --------------------------
 
-    // @GetMapping("/updateProfile")
-    // public String updateProfile(Model model) throws ExecutionException, InterruptedException {
-    //     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    //     MyUserDetails myUserDetails = (MyUserDetails) auth.getPrincipal();
-    //     Pharmacist pharmacist = pharmacistService.getPharmacist(myUserDetails.getUsername());
-    //     model.addAttribute("pharmacist", pharmacist);
-    //     return "PharmacistProfile";
-    // }
+    //AddMedicine//
+    @PostMapping("/addMedicine")
+public String addMedicine(@ModelAttribute("newMedicine") Medicine newMedicine, RedirectAttributes redirectAttributes) {
+    try {
+        if (medicineService.isMedicineNameExists(newMedicine.getMedName())) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Medicine with the same name already exists.");
+            return "redirect:/pharmacist/viewMedicineList";
+        }
 
-    // @PostMapping("/updateProfile/profile")
-    // public String submitProfile(@ModelAttribute Pharmacist pharmacist, @RequestParam("profilePicture") MultipartFile profilePicture) throws ExecutionException, InterruptedException, IOException {
-    //     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    //     MyUserDetails myUserDetails = (MyUserDetails) auth.getPrincipal();
-    //     pharmacist.setUserId(myUserDetails.getUsername());
-
-    //     if (!profilePicture.isEmpty()) {
-    //         byte[] profilePictureBytes = profilePicture.getBytes();
-    //         pharmacist.setProfilePicture(profilePictureBytes); // Store image as byte array in the entity
-    //     }
-
-    //     pharmacistService.updatePharmacist(pharmacist);
-    //     return "redirect:/pharmacist/updateProfile";
-    // }
-
-    // @GetMapping("/pharmacist/profilePicture/{userId}")
-    // @ResponseBody
-    // public ResponseEntity<byte[]> getProfilePicture(@PathVariable String userId) throws ExecutionException, InterruptedException {
-    //     byte[] profilePictureData = pharmacistService.getProfilePictureData(userId);
-
-    //     HttpHeaders headers = new HttpHeaders();
-    //     headers.setContentType(MediaType.IMAGE_JPEG);
-
-    //     return new ResponseEntity<>(profilePictureData, headers, HttpStatus.OK);
-    // }
-
-    // @GetMapping("/viewMedicineList")
-    // public String viewMedicineList(...) { ... }
-
-    // @GetMapping("/editMedicine/{medId}")
-    // public String editMedicine(...) { ... }
-
-    // @PostMapping("/updateMedicine/{medId}")
-    // public String updateMedicine(...) { ... }
-
-    // @PostMapping("/deleteMedicine/{medId}")
-    // public String deleteSelectedMedicine(...) { ... }
-
-    // @PostMapping("/addStock")
-    // public String addStock(...) { ... }
-
-    // @GetMapping("/addMedicineForm")
-    // public String showAddMedicineForm(Model model) { ... }
-
-    // @PostMapping("/addMedicine")
-    // public String addMedicine(...) { ... }
-
-    // -------------------------------------------------------------------------
+        medicineService.createMedicine(newMedicine);
+        redirectAttributes.addFlashAttribute("successMessage", "Medicine added successfully.");
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("errorMessage", "Error adding medicine.");
+    }
+    return "redirect:/pharmacist/viewMedicineList";
 }
+
+
+//AddMedicineForm//
+@GetMapping("/addMedicineForm")
+public String showAddMedicineForm(Model model) {
+    model.addAttribute("newMedicine", new Medicine());
+    return "addMedicineForm";
+}
+
+
+//ViewMedicineList//
+@GetMapping("/viewMedicineList")
+public String viewMedicineList(Model model,
+                               @RequestParam(defaultValue = "0") int pageNo,
+                               @RequestParam(defaultValue = "5") int pageSize,
+                               @RequestParam(defaultValue = "") String searchQuery) {
+
+    List<Medicine> allMedicine = medicineService.getAllMedicines();
+
+    if (!searchQuery.isEmpty()) {
+        allMedicine = allMedicine.stream()
+            .filter(p -> p.getMedName().toLowerCase().contains(searchQuery.toLowerCase()) ||
+                         p.getMedId().toLowerCase().contains(searchQuery))
+            .collect(Collectors.toList());
+    }
+
+    int total = allMedicine.size();
+    int start = Math.min(pageNo * pageSize, total);
+    int end = Math.min((pageNo + 1) * pageSize, total);
+    int startIndex = pageNo * pageSize;
+
+    List<Medicine> medicineList = allMedicine.subList(start, end);
+
+    model.addAttribute("startIndex", startIndex);
+    model.addAttribute("currentPage", pageNo);
+    model.addAttribute("totalPages", (total + pageSize - 1) / pageSize);
+    model.addAttribute("pageSize", pageSize);
+    model.addAttribute("medicineList", medicineList);
+    model.addAttribute("searchQuery", searchQuery);
+
+    return "viewMedicineList";
+}
+
+//EditMedicine//
+@GetMapping("/editMedicine/{medId}")
+public String editMedicine(@PathVariable String medId, Model model) {
+    Medicine medicine = medicineService.getMedicineById(medId);
+    model.addAttribute("medicine", medicine);
+    return "editMedicine";
+}
+
+
+//updateMedicine//
+@PostMapping("/updateMedicine/{medId}")
+public String updateMedicine(@PathVariable String medId, @ModelAttribute Medicine updatedMedicine, RedirectAttributes redirectAttributes) {
+    updatedMedicine.setMedId(medId);
+    String message = medicineService.updateMedicine(updatedMedicine);
+    redirectAttributes.addFlashAttribute("successMessage", message);
+    return "redirect:/pharmacist/viewMedicineList";
+}
+
+
+//DeleteMedicine//
+@PostMapping("/deleteMedicine/{medId}")
+public String deleteMedicine(@PathVariable String medId, RedirectAttributes redirectAttributes) {
+    String message = medicineService.deleteMedicine(medId);
+    redirectAttributes.addFlashAttribute("successMessage", message);
+    return "redirect:/pharmacist/viewMedicineList";
+}
+
+//AddStock//
+@PostMapping("/addStock")
+public String addStock(@RequestParam String medId, @RequestParam int quantity, RedirectAttributes redirectAttributes) {
+    String message = medicineService.addStock(medId, quantity);
+    redirectAttributes.addFlashAttribute("successMessage", message);
+    return "redirect:/pharmacist/viewMedicineList";
+}
+
+
+
+
+
+
+
+}
+
+
+    

@@ -1,3 +1,5 @@
+//FireStore//
+
 // package com.SmartHealthRemoteSystem.SHSR.User.Patient;
 
 // import com.SmartHealthRemoteSystem.SHSR.User.User;
@@ -82,15 +84,23 @@
 // }
 
 
+
+//MongoDB//
 package com.SmartHealthRemoteSystem.SHSR.User.Patient;
 
-import org.springframework.data.annotation.TypeAlias;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.SmartHealthRemoteSystem.SHSR.Prediction.Prediction;
 import com.SmartHealthRemoteSystem.SHSR.User.User;
+import com.SmartHealthRemoteSystem.SHSR.ViewDoctorPrescription.Prescription;
+import com.SmartHealthRemoteSystem.SHSR.ProvideDiagnosis.Diagnosis;
 
-@Document(collection = "User")  // Store in same collection as User
-@TypeAlias("Patient")          // Allows MongoDB to distinguish Patient from base User
+
+@Document(collection = "Patient")  // Store in same collection as Patient       
 public class Patient extends User {
 
     private String address;
@@ -98,6 +108,12 @@ public class Patient extends User {
     private String sensorDataId;
     private String assigned_doctor;
     private String status;
+      private Map<String, Prediction> prediction = new HashMap<>();
+      private Map<String, Prescription> prescription = new HashMap<>();
+      private Map<String, Diagnosis> diagnosis = new HashMap<>();
+    private String profilePicture;
+    private String profilePictureType; // e.g., "image/png", "image/jpeg"
+    
 
     public Patient() {
         super();
@@ -112,6 +128,8 @@ public class Patient extends User {
         this.assigned_doctor = assigned_doctor;
         this.status = status;
     }
+
+   
 
     // Getters and Setters
 
@@ -135,6 +153,10 @@ public class Patient extends User {
         return sensorDataId;
     }
 
+    public String getProfilePicture() {
+    return profilePicture;
+}
+
     public void setSensorDataId(String sensorDataId) {
         this.sensorDataId = sensorDataId;
     }
@@ -151,7 +173,50 @@ public class Patient extends User {
         return status;
     }
 
+       public Map<String, Prediction> getPrediction() {
+        return prediction;
+    }
+
+    public Map<String, Prescription> getPrescription() {
+         return prescription;
+     }
+
+     public Map<String, Diagnosis> getDiagnosis() {
+    return diagnosis;
+     }
+
+    public void setProfilePicture(String profilePicture) {
+    this.profilePicture = profilePicture;
+    }
+
+
+
     public void setStatus(String status) {
         this.status = status;
     }
+    
+     public void setPrediction(Map<String, Prediction> prediction) {
+        this.prediction = prediction;
+    }
+
+     public void setPrescription(Map<String, Prescription> prescription) {
+         this.prescription = prescription;
+     }
+
+     public void setDiagnosis(Map<String, Diagnosis> diagnosis) {
+    this.diagnosis = diagnosis;
+     }
+
+     public String getProfilePictureType() {
+    return profilePictureType;
+}
+
+public void setProfilePictureType(String profilePictureType) {
+    this.profilePictureType = profilePictureType;
+}
+
+
+    
+
+     
 }

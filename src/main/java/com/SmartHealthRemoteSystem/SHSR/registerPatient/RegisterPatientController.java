@@ -44,14 +44,14 @@
 // }
 
 
+
+//MongoDB//
 package com.SmartHealthRemoteSystem.SHSR.registerPatient;
 
 import java.util.concurrent.ExecutionException;
-
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -59,6 +59,7 @@ import org.springframework.web.bind.annotation.*;
 import com.SmartHealthRemoteSystem.SHSR.Service.PatientService;
 import com.SmartHealthRemoteSystem.SHSR.Service.UserService;
 import com.SmartHealthRemoteSystem.SHSR.User.Patient.Patient;
+import com.SmartHealthRemoteSystem.SHSR.User.User;
 
 @Controller
 @RequestMapping("/registerPatient")
@@ -66,13 +67,11 @@ public class RegisterPatientController {
 
     private final PatientService patientService;
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public RegisterPatientController(PatientService patientService, UserService userService, PasswordEncoder passwordEncoder) {
+    public RegisterPatientController(PatientService patientService, UserService userService) {
         this.patientService = patientService;
         this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping
@@ -98,12 +97,11 @@ public class RegisterPatientController {
             return "registerPatientForm";
         }
 
-        String encodedPassword = passwordEncoder.encode(password);
-
+        // 1. Create Patient object with raw password
         Patient newPatient = new Patient(
                 userId,
                 name,
-                encodedPassword,
+                password, // ⚠️ raw password
                 contact,
                 "PATIENT",
                 email,
@@ -114,12 +112,24 @@ public class RegisterPatientController {
                 "Under Surveillance"
         );
 
+        // 2. Save to Patient collection
         String result = patientService.createPatient(newPatient);
         if (result.contains("already exists")) {
             model.addAttribute("error", result);
             model.addAttribute("patient", new Patient()); // refill form
             return "registerPatientForm";
         }
+
+        // 3. Save to User collection (encoding will be handled inside userService)
+        User user = new User(
+                userId,
+                name,
+                password, // ⚠️ raw password
+                contact,
+                "PATIENT",
+                email
+        );
+        userService.createUser(user);
 
         return "redirect:/login";
     }

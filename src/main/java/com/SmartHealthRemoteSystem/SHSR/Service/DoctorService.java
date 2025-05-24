@@ -1,3 +1,5 @@
+
+//Firestore//
 // package com.SmartHealthRemoteSystem.SHSR.Service;
 
 // import com.SmartHealthRemoteSystem.SHSR.Repository.SHSRDAO;
@@ -112,6 +114,8 @@
 
 // }
 
+//MongoDB//
+
 package com.SmartHealthRemoteSystem.SHSR.Service;
 
 import java.util.ArrayList;
@@ -164,15 +168,20 @@ public class DoctorService {
 
     // ADD THIS: Get only patients assigned to this doctor
     public List<Patient> findAllPatientAssignToDoctor(String doctorId) throws ExecutionException, InterruptedException {
-        List<Patient> allPatients = patientRepository.getAll();
+        List<Patient> allPatients = patientRepository.getAll(); // fetch all patients
+    
         List<Patient> assignedPatients = new ArrayList<>();
-
         for (Patient patient : allPatients) {
             if (patient.getAssigned_doctor() != null && patient.getAssigned_doctor().equals(doctorId)) {
-                assignedPatients.add(patient);
+                assignedPatients.add(patient); // only keep the patients assigned to this doctor
             }
         }
-
+    
         return assignedPatients;
     }
+
+    public Patient getPatient(String patientId) throws ExecutionException, InterruptedException {
+       return patientRepository.get(patientId);
+     }
+    
 }

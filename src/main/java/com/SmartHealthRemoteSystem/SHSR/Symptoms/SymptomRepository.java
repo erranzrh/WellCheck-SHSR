@@ -88,3 +88,17 @@
 //         return "Document with symptom ID " + symptomID + " has been deleted";
 //     }
 // }
+
+
+//MongoDB//
+
+package com.SmartHealthRemoteSystem.SHSR.Symptoms;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface SymptomRepository extends MongoRepository<Symptom, String> {
+    Symptom findByName(String name);  // <-- required for weight lookup
+}
+

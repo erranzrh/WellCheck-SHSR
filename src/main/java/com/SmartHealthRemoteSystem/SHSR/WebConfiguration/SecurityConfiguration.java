@@ -28,10 +28,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         this.successHandler = successHandler;
     }
 
-    @Override
+   @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(myUserDetailsService);
-    }
+    auth.userDetailsService(myUserDetailsService)
+        .passwordEncoder(passwordEncoder()); // ✅ FIXED
+}
+
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {

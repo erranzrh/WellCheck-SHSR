@@ -19,33 +19,66 @@
 </head>
 <body>
 
-<div class="container shadow p-3 mb-5 bg-primary bg-opacity-25 rounded mt-4">
-    <div class="row gx-5">
-        <div class="col-md-3">
-            <div class="shadow p-3 bg-primary bg-opacity-25 rounded">
-                <a th:href="@{/doctor}" class="text-decoration-none text-dark">
-                    <div class="card bg-primary bg-opacity-25">
-                        <img class="card-img-top" th:src="${doctor.profilePicture != null} ? ${doctor.profilePicture} : '/image/img_avatar1.png'" alt="Profile Picture" />
-                        <div class="card-body">
-                            <h3 class="card-title" th:text="${doctor.name}"></h3>
-                            <p class="card-text" th:text="${doctor.position}"></p>
+<div class="container shadow p-3 mb-5  bg-primary bg-opacity-25 rounded" style="position: relative; top: 50px;">
+    <div class="container overflow-hidden">
+        <div class="row gx-5">
+            <div class="col ">
+                <div class="d-flex shadow flex-column flex-shrink-0 p-3 bg-primary bg-opacity-25 rounded">
+                    <a th:href="@{/doctor}" class="card-link" style="text-decoration: none; color: black;">
+                        <div class="card bg-primary bg-opacity-25 rounded">
+                           <img th:src="'data:' + ${doctor.profilePictureType} + ';base64,' + ${doctor.profilePicture}"
+     alt="Doctor Profile" class="card-img-top" />
+                            <div class="card-body">
+                                <h3 class="card-title" th:text="${doctor.name}" > </h3>
+                                <p class="card-text" th:text="${doctor.position}"></p>
+                            </div>
                         </div>
-                    </div>
-                </a>
-                <hr>
-                <ul class="nav nav-pills flex-column">
-                    <li><a th:href="@{/doctor/updateProfile}" class="nav-link link-dark f">Edit Profile</a></li>
-                    <li><a th:href="@{/doctor/myPatient(pageNo=1)}" class="nav-link link-dark f">My Patient</a></li>
-                    <li><a th:href="@{/assignpatient}" class="nav-link link-dark f">Assign Patient</a></li>
-                    <li><a th:href="@{/patient/list}" class="nav-link link-dark f">List of Assigned Patients</a></li>
-                    <li>
-                        <form th:action="@{/logout}" method="post" th:hidden="true" name="logoutForm"></form>
-                        <a href="javascript: document.logoutForm.submit()" class="nav-link link-dark f">Logout</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
+                    </a>
+                    <hr>
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        <li class="nav-item">
+                            <a th:href="@{/doctor/updateProfile}" class="nav-link link-dark f">
+                                Edit Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/doctor/myPatient(pageNo=1)}" class="nav-link link-dark f">
+                                My Patient
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/assignpatient}" class="nav-link link-dark f">
+                                Assign Patient
+                            </a>
+                        </li>
+                       
+                        <li>
+                            <a th:href="@{/patient/list}"class="nav-link link-dark f">
+                                List of Assigned Patient
+                            </a>
+                        </li>
+                        
+                          <li>
+    <a th:href="@{/doctor/predictionReview}" class="nav-link link-dark f">Prediction Review</a>
+</li>
 
+
+ 
+                       
+                     
+                        <li>
+
+                            <form th:action="@{/logout}" method="post" th:hidden="true" name="logoutForm">
+                                <input type="submit" value="Logout" />
+                            </form>
+                            <a href="javascript: document.logoutForm.submit()" class="nav-link link-dark f">
+                                Logout
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
         <div class="col-md-9">
             <h2>Edit Profile</h2>
             <form th:object="${doctor}" th:action="@{/doctor/updateProfile/profile}" method="post" enctype="multipart/form-data">

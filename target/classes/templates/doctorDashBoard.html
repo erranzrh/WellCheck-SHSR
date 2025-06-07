@@ -15,7 +15,7 @@
     <title>Doctor's Dashboard</title>
 </head>
 <body>
-
+  
 
 
 <div class="container shadow p-3 mb-5  bg-primary bg-opacity-25 rounded" style="position: relative; top: 50px;">
@@ -50,18 +50,21 @@
                                 Assign Patient
                             </a>
                         </li>
-                        <!---izzat-->
+                       
                         <li>
                             <a th:href="@{/patient/list}"class="nav-link link-dark f">
                                 List of Assigned Patient
                             </a>
                         </li>
-                        <!---izzat-->
-                        <li>
-                            <a th:href="@{/doctor/prediction}"class="nav-link link-dark f">
-                                Prediction Tool
-                            </a>
-                        </li>
+                        
+                          <li>
+    <a th:href="@{/doctor/predictionReview}" class="nav-link link-dark f">Prediction Review</a>
+</li>
+
+
+ 
+                       
+                     
                         <li>
 
                             <form th:action="@{/logout}" method="post" th:hidden="true" name="logoutForm">

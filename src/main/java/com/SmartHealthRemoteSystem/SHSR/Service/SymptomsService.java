@@ -123,7 +123,6 @@ import com.SmartHealthRemoteSystem.SHSR.Symptoms.Symptom;
 import com.SmartHealthRemoteSystem.SHSR.Symptoms.SymptomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -153,12 +152,12 @@ public class SymptomsService {
     }
 
     public int getSymptomWeight(String symptomName) {
-    Symptom symptom = symptomRepository.findByName(symptomName);
-    if (symptom != null && symptom.getWeight() != null) {
-        return symptom.getWeight();
+        // Normalize (replace _ with space)
+        String normalizedName = symptomName.replace("_", " ").trim();
+        Symptom symptom = symptomRepository.findByNameIgnoreCase(normalizedName);
+        if (symptom != null && symptom.getWeight() != null) {
+            return symptom.getWeight();
+        }
+        return 0;
     }
-    return 0;
-}
-
-
 }

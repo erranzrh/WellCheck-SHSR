@@ -463,8 +463,12 @@ public String showAddMedicineForm(Model model) {
 public String viewMedicineList(Model model,
                                @RequestParam(defaultValue = "0") int pageNo,
                                @RequestParam(defaultValue = "5") int pageSize,
-                               @RequestParam(defaultValue = "") String searchQuery) {
+                               @RequestParam(defaultValue = "") String searchQuery) throws ExecutionException, InterruptedException {
 
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    MyUserDetails myUserDetails = (MyUserDetails) auth.getPrincipal();
+    Pharmacist pharmacist = pharmacistService.getPharmacist(myUserDetails.getUsername());
+    
     List<Medicine> allMedicine = medicineService.getAllMedicines();
 
     if (!searchQuery.isEmpty()) {
@@ -487,9 +491,13 @@ public String viewMedicineList(Model model,
     model.addAttribute("pageSize", pageSize);
     model.addAttribute("medicineList", medicineList);
     model.addAttribute("searchQuery", searchQuery);
+    
+    // ✅ Add this:
+    model.addAttribute("pharmacist", pharmacist);
 
     return "viewMedicineList";
 }
+
 
 //EditMedicine//
 @GetMapping("/editMedicine/{medId}")

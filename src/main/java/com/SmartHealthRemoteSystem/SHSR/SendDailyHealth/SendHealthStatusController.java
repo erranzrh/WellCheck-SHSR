@@ -189,6 +189,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/Health-status")
@@ -246,21 +247,46 @@ public class SendHealthStatusController {
         return "sendDailyHealthSymptom";
     }
 
+    // @GetMapping("/Diagnosis")
+    // public String showDiagnosisPage(@RequestParam("patientId") String patientId,
+    //                                 @RequestParam("doctorId") String doctorId,
+    //                                 Model model) throws ExecutionException, InterruptedException {
+
+    //     Patient patient = patientService.getPatientById(patientId);
+    //     Doctor doctor = doctorService.getDoctor(doctorId);
+    //     // List<Prediction> predictionList = predictionService.getPatientPredictions(patientId);
+    //     List<Prediction> predictionList = predictionService.getPatientPredictions(patientId)
+    // .stream()
+    // .filter(Prediction::isApproved)
+    // .collect(Collectors.toList());
+
+
+    //     model.addAttribute("patient", patient);
+    //     model.addAttribute("doctor", doctor);
+    //     model.addAttribute("predictionList", predictionList);
+
+    //     return "Diagnosis";
+    // }
+
     @GetMapping("/Diagnosis")
-    public String showDiagnosisPage(@RequestParam("patientId") String patientId,
-                                    @RequestParam("doctorId") String doctorId,
-                                    Model model) throws ExecutionException, InterruptedException {
+public String showDiagnosisPage(@RequestParam("patientId") String patientId,
+                                @RequestParam("doctorId") String doctorId,
+                                Model model) throws ExecutionException, InterruptedException {
 
-        Patient patient = patientService.getPatientById(patientId);
-        Doctor doctor = doctorService.getDoctor(doctorId);
-        List<Prediction> predictionList = predictionService.getPatientPredictions(patientId);
+    Patient patient = patientService.getPatientById(patientId);
+    Doctor doctor = doctorService.getDoctor(doctorId);
 
-        model.addAttribute("patient", patient);
-        model.addAttribute("doctor", doctor);
-        model.addAttribute("predictionList", predictionList);
+    List<Prediction> approvedList = predictionService.getApprovedPredictions(patientId);
+    List<Prediction> rejectedList = predictionService.getRejectedPredictions(patientId);
 
-        return "Diagnosis";
-    }
+    model.addAttribute("patient", patient);
+    model.addAttribute("doctor", doctor);
+    model.addAttribute("approvedList", approvedList);
+    model.addAttribute("rejectedList", rejectedList);
+
+    return "Diagnosis";
+}
+
 
     private List<String> formatSymptoms(List<String> symptoms) {
         List<String> formattedSymptoms = new ArrayList<>();

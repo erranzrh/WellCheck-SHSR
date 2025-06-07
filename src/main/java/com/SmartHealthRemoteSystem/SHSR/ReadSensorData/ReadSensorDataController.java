@@ -132,10 +132,17 @@ public class ReadSensorDataController {
     @Autowired
     private DoctorService doctorService;
 
+    // @PostMapping("/save")
+    // public String saveSensor(@RequestBody SensorData sensorData) {
+    //     return sensorDataService.saveSensorData(sensorData);
+    // }
+    
     @PostMapping("/save")
     public String saveSensor(@RequestBody SensorData sensorData) {
-        return sensorDataService.saveSensorData(sensorData);
-    }
+    // Auto-set timestamp inside service layer
+    return sensorDataService.saveSensorData(sensorData);
+}
+
 
     @GetMapping("/get-sensor-data/{sensorDataId}")
     public SensorData getSensor(@PathVariable String sensorDataId) {

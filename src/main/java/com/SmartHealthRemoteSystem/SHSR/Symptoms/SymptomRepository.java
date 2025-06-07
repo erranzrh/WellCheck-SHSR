@@ -99,6 +99,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SymptomRepository extends MongoRepository<Symptom, String> {
-    Symptom findByName(String name);  // <-- required for weight lookup
+    
+    // existing
+    Symptom findByName(String name);
+    
+    // new: add case-insensitive search
+    Symptom findByNameIgnoreCase(String name);
 }
-

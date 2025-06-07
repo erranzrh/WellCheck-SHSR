@@ -312,47 +312,60 @@ public String save(Patient patient) throws ExecutionException, InterruptedExcept
 
 
     @Override
-    public String update(Patient patient) throws ExecutionException, InterruptedException {
-        Optional<Patient> existingPatientOpt = mongoPatientRepository.findById(patient.getUserId());
+public String update(Patient patient) throws ExecutionException, InterruptedException {
+    Optional<Patient> existingPatientOpt = mongoPatientRepository.findById(patient.getUserId());
 
-        if (existingPatientOpt.isPresent()) {
-            Patient existingPatient = existingPatientOpt.get();
-            
+    if (existingPatientOpt.isPresent()) {
+        Patient existingPatient = existingPatientOpt.get();
 
-            if (patient.getAddress() != null && !patient.getAddress().isEmpty()) {
-                existingPatient.setAddress(patient.getAddress());
-            }
-            if (patient.getEmergencyContact() != null && !patient.getEmergencyContact().isEmpty()) {
-                existingPatient.setEmergencyContact(patient.getEmergencyContact());
-            }
-            if (patient.getAssigned_doctor() != null) {
-                existingPatient.setAssigned_doctor(patient.getAssigned_doctor());
-            }
-            if (patient.getSensorDataId() != null) {
-                existingPatient.setSensorDataId(patient.getSensorDataId());
-            }
-            if (patient.getStatus() != null) {
-                existingPatient.setStatus(patient.getStatus());
-            }
-
-            mongoPatientRepository.save(existingPatient);
-
-            // Also update user
-            User user = new User(
-                    patient.getUserId(),
-                    patient.getName(),
-                    patient.getPassword(),
-                    patient.getContact(),
-                    patient.getRole(),
-                    patient.getEmail()
-            );
-            mongoUserRepository.save(user);
-
-            return "Patient updated successfully.";
+        // ✅ Update fields
+        if (patient.getAddress() != null && !patient.getAddress().isEmpty()) {
+            existingPatient.setAddress(patient.getAddress());
+        }
+        if (patient.getEmergencyContact() != null && !patient.getEmergencyContact().isEmpty()) {
+            existingPatient.setEmergencyContact(patient.getEmergencyContact());
+        }
+        if (patient.getAssigned_doctor() != null) {
+            existingPatient.setAssigned_doctor(patient.getAssigned_doctor());
+        }
+        if (patient.getSensorDataId() != null) {
+            existingPatient.setSensorDataId(patient.getSensorDataId());
+        }
+        if (patient.getStatus() != null) {
+            existingPatient.setStatus(patient.getStatus());
         }
 
-        return "Error: Patient not found.";
+        // ✅ Handle profile picture update (ADD THIS PART)
+        if (patient.getProfilePicture() != null) {
+            existingPatient.setProfilePicture(patient.getProfilePicture());
+        }
+        if (patient.getProfilePictureType() != null) {
+            existingPatient.setProfilePictureType(patient.getProfilePictureType());
+        }
+
+        // ✅ Manual diagnosis flag
+        existingPatient.setNeedsManualDiagnosis(patient.isNeedsManualDiagnosis());
+
+        // ✅ Save updated patient
+        mongoPatientRepository.save(existingPatient);
+
+        // ✅ Also update User collection (for authentication fields)
+        User user = new User(
+                patient.getUserId(),
+                patient.getName(),
+                patient.getPassword(),
+                patient.getContact(),
+                patient.getRole(),
+                patient.getEmail()
+        );
+        mongoUserRepository.save(user);
+
+        return "Patient updated successfully.";
     }
+
+    return "Error: Patient not found.";
+}
+
 
     @Override
     public String delete(String id) throws ExecutionException, InterruptedException {

@@ -22,7 +22,8 @@
     <div class="row">
         <div class="col-3">
             <div class="p-3 bg-white rounded shadow">
-                <img class="img-fluid rounded mb-3" th:src="@{/image/img_avatar1.png}" alt="Card image">
+                                 <img th:src="'data:' + ${doctor.profilePictureType} + ';base64,' + ${doctor.profilePicture}"
+     alt="Doctor Profile" class="card-img-top" />
                 <h3 th:text="${doctor.name}">Doctor Name</h3>
                 <p th:text="${doctor.position}">Doctor Role</p>
                 <hr>

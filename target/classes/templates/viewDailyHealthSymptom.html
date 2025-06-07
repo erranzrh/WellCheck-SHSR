@@ -24,7 +24,13 @@
                 <div class="d-flex shadow flex-column flex-shrink-0 p-3 bg-primary bg-opacity-25 rounded">
                     <a th:href="@{/patient}" class="card-link" style="text-decoration: none; color: black;">
                         <div class="card bg-primary bg-opacity-25 rounded">
-                            <img class="card-img-top" src="/image/img_avatar1.png" alt="Card image" >
+                            <img th:if="${patient.profilePicture != null}"
+                             th:src="${'data:' + patient.profilePictureType + ';base64,' + patient.profilePicture}"
+                             alt="Profile Picture" class="card-img-top" />
+
+                        <img th:if="${patient.profilePicture == null}"
+                             th:src="@{/image/img_avatar1.png}" 
+                             alt="Profile Picture" class="card-img-top" />
                             <div class="card-body">
                                 <h3 class="card-title">rakesh</h3>
                                 <p style=" font-size: 12px;">Patient Contact No. :<span>012345690</span></p>

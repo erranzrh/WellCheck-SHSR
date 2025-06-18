@@ -56,9 +56,12 @@
                                 Dashboard
                             </a>
                         </li>
-                        <li>
-                            <a th:href="@{Diagnosis(patientId=${patient.userId}, doctorId=${doctor.userId})}" class="nav-link link-dark f">Diagnosis History</a>
-                        </li>
+                        <li th:if="${doctor != null}">
+    <a th:href="@{Diagnosis(patientId=${patient.userId}, doctorId=${doctor.userId})}" class="nav-link link-dark f">
+        Diagnosis History
+    </a>
+</li>
+
                         <li>
                             <form th:action="@{/logout}" method="post" hidden="true" name="logoutForm">
                                 <button>Logout</button>

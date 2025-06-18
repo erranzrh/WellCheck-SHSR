@@ -50,6 +50,11 @@
                                     Medicine Stock
                                 </a>
                             </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link link-dark f" th:href="@{/pharmacist/patient-medicine-list}">Patient Medicines</a>
+                            </li>
+
                             <li>
                                 <form th:action="@{/logout}" method="post" th:hidden="true" name="logoutForm">
                                     <input type="submit" value="Logout" />
@@ -80,7 +85,6 @@
             <th>No</th>
             <th>Medicine Name</th>
             <th>Quantity</th>
-            <th>Type</th>
         </tr>
     </thead>
     <tbody>
@@ -88,7 +92,6 @@
             <td th:text="${startIndex + stat.index + 1}"></td>
             <td th:text="${med.medName}"></td>
             <td th:text="${med.quantity}"></td>
-            <td th:text="${med.medType}"></td>
         </tr>
     </tbody>
 </table>
@@ -111,7 +114,7 @@
 
 
                     <p th:if="${errorMessage}" th:text="${errorMessage}" style="color:red;"></p>
-                    <strong>Last Updated: </strong><span style="color:green" th:text="${successMessage}"></span>
+                    
                 </div>
             </div>
         </div>

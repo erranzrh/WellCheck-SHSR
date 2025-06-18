@@ -3,11 +3,14 @@ package com.SmartHealthRemoteSystem.SHSR.SendPrescriptions;
 
 import com.SmartHealthRemoteSystem.SHSR.Medicine.Medicine;
 import com.SmartHealthRemoteSystem.SHSR.Service.DoctorService;
+import com.SmartHealthRemoteSystem.SHSR.Service.MailService;
 import com.SmartHealthRemoteSystem.SHSR.Service.MedicineService;
 import com.SmartHealthRemoteSystem.SHSR.Service.PatientService;
 import com.SmartHealthRemoteSystem.SHSR.Service.PrescriptionService;
 import com.SmartHealthRemoteSystem.SHSR.User.Doctor.Doctor;
 import com.SmartHealthRemoteSystem.SHSR.User.Patient.Patient;
+import com.SmartHealthRemoteSystem.SHSR.Service.PharmacistService;
+import com.SmartHealthRemoteSystem.SHSR.User.Pharmacist.Pharmacist;
 import com.SmartHealthRemoteSystem.SHSR.ViewDoctorPrescription.Prescription;
 import com.SmartHealthRemoteSystem.SHSR.WebConfiguration.MyUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,15 +35,24 @@ public class SendPrescriptionController {
     private final PatientService patientService;
     private final PrescriptionService prescriptionService;
     private final MedicineService medicineService;
+    private MailService mailService;
+    private final PharmacistService pharmacistService;
 
     @Autowired
-    public SendPrescriptionController(DoctorService doctorService, PatientService patientService,
-                                      PrescriptionService prescriptionService, MedicineService medicineService) {
-        this.doctorService = doctorService;
-        this.patientService = patientService;
-        this.prescriptionService = prescriptionService;
-        this.medicineService = medicineService;
-    }
+public SendPrescriptionController(DoctorService doctorService,
+                                  PatientService patientService,
+                                  PrescriptionService prescriptionService,
+                                  MedicineService medicineService,
+                                  MailService mailService,
+                                  PharmacistService pharmacistService) {
+    this.doctorService = doctorService;
+    this.patientService = patientService;
+    this.prescriptionService = prescriptionService;
+    this.medicineService = medicineService;
+    this.mailService = mailService;
+    this.pharmacistService = pharmacistService; // ✅ this line is missing in your current constructor
+}
+
 
     // Show prescription form
     @GetMapping("/form")
@@ -80,13 +92,13 @@ public class SendPrescriptionController {
 
     
 
-    @PostMapping("/form/submit")
+   @PostMapping("/form/submit")
 public String submitPrescriptionForm(@RequestParam String patientId,
                                      @RequestParam String doctorId,
                                      @RequestParam String prescription,
                                      @RequestParam String diagnosisAilment,
                                      HttpServletRequest request,
-                                     Model model) {
+                                     Model model) throws Exception {
 
     Map<String, String[]> paramMap = request.getParameterMap();
     Map<String, Integer> prescribedMedicines = new HashMap<>();
@@ -102,18 +114,51 @@ public String submitPrescriptionForm(@RequestParam String patientId,
                 int quantity = Integer.parseInt(quantityStr);
                 prescribedMedicines.put(medId, quantity);
             } catch (NumberFormatException e) {
-                // handle invalid input
+                // Skip invalid entries
             }
         }
 
         index++;
     }
 
-    // Save prescription
+    // ✅ Save prescription
     prescriptionService.prescribeMedicines(patientId, prescribedMedicines, prescription, diagnosisAilment);
+
+    // ✅ Send Email Notification to Patient
+    Patient patient = patientService.getPatientById(patientId);
+    Doctor doctor = doctorService.getDoctor(doctorId);
+
+    if (patient.getEmail() != null && !patient.getEmail().isEmpty()) {
+        String subject = "New Prescription from Dr. " + doctor.getName();
+        String message = "Dear " + patient.getName() + ",\n\n"
+                + "You have received a new prescription from Dr. " + doctor.getName() + ".\n"
+                + "Diagnosis: " + diagnosisAilment + "\n"
+                + "Prescription: " + prescription + "\n\n"
+                + "Please log in to view the full details.\n\n"
+                + "Regards,\nWellCheck System";
+
+        mailService.sendMail(patient.getEmail(), subject, message);
+    }
+
+     // ✅ Send Email Notification to All Pharmacists
+  List<Pharmacist> allPharmacists = pharmacistService.getListPharmacist(); // ✅ matches your service
+    for (Pharmacist pharmacist : allPharmacists) {
+        if (pharmacist.getEmail() != null && !pharmacist.getEmail().isEmpty()) {
+            String pharmacistSubject = "Prescription Issued for Patient: " + patient.getName();
+            String pharmacistMessage = "Dear " + pharmacist.getName() + ",\n\n"
+                    + "A new prescription has been submitted by Dr. " + doctor.getName()
+                    + " for patient " + patient.getName() + ".\n"
+                    + "Diagnosis: " + diagnosisAilment + "\n\n"
+                    + "Please log in to view and prepare the medicine accordingly.\n\n"
+                    + "Regards,\nWellCheck System";
+
+            mailService.sendMail(pharmacist.getEmail(), pharmacistSubject, pharmacistMessage);
+        }
+    }
 
     return "redirect:/prescription/history?patientId=" + patientId;
 }
+
 
 
     // Submit selected medicines with quantity
@@ -143,34 +188,43 @@ public String submitPrescriptionForm(@RequestParam String patientId,
     }
 
     // Prescription history for a patient
-    @GetMapping("/history")
-    public String viewPrescriptionHistory(@RequestParam String patientId,
-                                          @RequestParam(defaultValue = "0") int pageNo,
-                                          @RequestParam(defaultValue = "10") int pageSize,
-                                          @RequestParam(defaultValue = "") String searchQuery,
-                                          Model model) throws Exception {
+   @GetMapping("/history")
+public String viewPrescriptionHistory(@RequestParam String patientId,
+                                      @RequestParam(defaultValue = "0") int pageNo,
+                                      @RequestParam(defaultValue = "10") int pageSize,
+                                      @RequestParam(defaultValue = "") String searchQuery,
+                                      Model model) throws Exception {
 
-        List<Prescription> allPrescriptions = prescriptionService.getAllPrescriptions(patientId);
+    // ✅ Get logged-in doctor
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
+    Doctor doctor = doctorService.getDoctor(userDetails.getUsername());
 
-        if (!searchQuery.isEmpty()) {
-            allPrescriptions = allPrescriptions.stream()
-                    .filter(p -> p.getPrescriptionDescription().toLowerCase().contains(searchQuery.toLowerCase())
-                            || p.getDiagnosisAilmentDescription().toLowerCase().contains(searchQuery.toLowerCase()))
-                    .collect(Collectors.toList());
-        }
+    // ✅ Add doctor to model to fix Thymeleaf error
+    model.addAttribute("doctor", doctor);
 
-        int total = allPrescriptions.size();
-        int start = Math.min(pageNo * pageSize, total);
-        int end = Math.min((pageNo + 1) * pageSize, total);
+    List<Prescription> allPrescriptions = prescriptionService.getAllPrescriptions(patientId);
 
-        List<Prescription> pagedList = allPrescriptions.subList(start, end);
-
-        model.addAttribute("prescriptionHistory", pagedList);
-        model.addAttribute("currentPage", pageNo);
-        model.addAttribute("totalPages", (total + pageSize - 1) / pageSize);
-        model.addAttribute("searchQuery", searchQuery);
-        model.addAttribute("startIndex", pageNo * pageSize);
-
-        return "prescriptionHistory";
+    if (!searchQuery.isEmpty()) {
+        allPrescriptions = allPrescriptions.stream()
+                .filter(p -> p.getPrescriptionDescription().toLowerCase().contains(searchQuery.toLowerCase())
+                        || p.getDiagnosisAilmentDescription().toLowerCase().contains(searchQuery.toLowerCase()))
+                .collect(Collectors.toList());
     }
+
+    int total = allPrescriptions.size();
+    int start = Math.min(pageNo * pageSize, total);
+    int end = Math.min((pageNo + 1) * pageSize, total);
+
+    List<Prescription> pagedList = allPrescriptions.subList(start, end);
+
+    model.addAttribute("prescriptionHistory", pagedList);
+    model.addAttribute("currentPage", pageNo);
+    model.addAttribute("totalPages", (total + pageSize - 1) / pageSize);
+    model.addAttribute("searchQuery", searchQuery);
+    model.addAttribute("startIndex", pageNo * pageSize);
+
+    return "prescriptionHistory";
+}
+
 }

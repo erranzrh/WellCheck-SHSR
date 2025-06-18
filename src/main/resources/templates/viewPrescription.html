@@ -16,7 +16,7 @@
 <div class="container mt-5 p-4 shadow bg-primary bg-opacity-25 rounded" style="max-width: 800px;">
     <form th:action="@{/patient/backDashboard}" method="post">
         <input type="hidden" th:name="patientId" th:value="${patient.userId}" />
-        <input type="hidden" th:name="doctorId" th:value="${doctor.userId}" />
+        <input type="hidden" th:name="doctorId" th:value="${doctor != null ? doctor.userId : ''}" />
         <button class="btn btn-secondary mb-3">Back</button>
     </form>
 

@@ -1,67 +1,9 @@
-// package com.SmartHealthRemoteSystem.SHSR.Service;
-
-// import com.SmartHealthRemoteSystem.SHSR.Prediction.Prediction;
-// import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.SensorData;
-// import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.SensorDataRepository;
-// import com.SmartHealthRemoteSystem.SHSR.Repository.SHSRDAO;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.stereotype.Service;
-
-// import java.util.Comparator;
-// import java.util.List;
-// import java.util.Optional;
-// import java.util.concurrent.ExecutionException;
-
-// @Service
-// public class SensorDataService {
-//     private final SHSRDAO<SensorData> sensorDataRepository;
-
-//     public SensorDataService() {
-//         sensorDataRepository=new SensorDataRepository();
-//     }
-
-//     @Autowired
-//     public SensorDataService(SHSRDAO<SensorData> sensorDataRepository) {
-//         this.sensorDataRepository = sensorDataRepository;
-//     }
-
-//     public String createSensorData() throws ExecutionException, InterruptedException {
-//         SensorData sensorData = new SensorData();
-//         return sensorDataRepository.save(sensorData);
-//     }
-
-//     public String deleteSensorData(String sensorId) throws ExecutionException, InterruptedException {
-//         return sensorDataRepository.delete(sensorId);
-//     }
-
-//     public SensorData getSensorData(String sensorId) throws ExecutionException, InterruptedException {
-//         return sensorDataRepository.get(sensorId);
-//     }
-
-//     public String updateSensorData(SensorData sensorData) throws ExecutionException, InterruptedException {
-//         return sensorDataRepository.update(sensorData);
-//     }
-
-//     public String stringSensorData(String sensorId) throws ExecutionException, InterruptedException {
-//         SensorData sensorData=sensorDataRepository.get(sensorId);
-//         return sensorData.toString();
-//     }
-
-//     public Optional<SensorData> getRecentSensorData(String sensorId) throws ExecutionException, InterruptedException{
-//     List<SensorData> SensorDataList = sensorDataRepository.getAll();
-//     return SensorDataList.stream().max(Comparator.comparing(SensorData::getTimestamp));
-//   }
-// }
-
-//MongoDB//
-
 package com.SmartHealthRemoteSystem.SHSR.Service;
 
 import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.SensorData;
+import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.HistorySensorData;
+import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.SensorDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -73,45 +15,50 @@ import java.util.Optional;
 public class SensorDataService {
 
     @Autowired
-    private MongoTemplate mongoTemplate;
+    private SensorDataRepository sensorDataRepository;
 
-    private static final String COLLECTION_NAME = "SensorData";
-
+    // ✅ Save new sensor data (for real-time update from serial etc)
     public String saveSensorData(SensorData sensorData) {
         sensorData.setTimestamp(Instant.now());
-        mongoTemplate.save(sensorData, COLLECTION_NAME);
-        return sensorData.getSensorDataId();
+        return sensorDataRepository.save(sensorData);
     }
 
+    // ✅ Get all sensor data (optional - for admin side if needed)
     public List<SensorData> getAllSensorData() {
-        return mongoTemplate.findAll(SensorData.class, COLLECTION_NAME);
+        return sensorDataRepository.getAll();
     }
 
+    // ✅ Get specific sensor data by sensorDataId
     public SensorData getSensorById(String sensorId) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("sensorDataId").is(sensorId));
-        return mongoTemplate.findOne(query, SensorData.class, COLLECTION_NAME);
+        return sensorDataRepository.get(sensorId);
     }
 
+    // ✅ Update latest reading
     public boolean updateSensorData(SensorData updatedSensorData) {
         SensorData existing = getSensorById(updatedSensorData.getSensorDataId());
         if (existing != null) {
             updatedSensorData.setTimestamp(Instant.now());
-            mongoTemplate.save(updatedSensorData, COLLECTION_NAME);
+            sensorDataRepository.update(updatedSensorData);
             return true;
         }
         return false;
     }
 
+    // ✅ Delete sensor data
     public boolean deleteSensorData(String sensorId) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("sensorDataId").is(sensorId));
-        return mongoTemplate.remove(query, SensorData.class, COLLECTION_NAME).getDeletedCount() > 0;
+        sensorDataRepository.delete(sensorId);
+        return true;
     }
 
+    // ✅ Get most recent sensor data (optional for auto-monitoring use cases)
     public Optional<SensorData> getMostRecentSensor() {
         List<SensorData> sensorDataList = getAllSensorData();
         return sensorDataList.stream()
                 .max(Comparator.comparing(SensorData::getTimestamp));
+    }
+
+    // ✅ Append history into nested history array
+    public boolean appendHistory(String sensorDataId, HistorySensorData historyData) {
+        return sensorDataRepository.addToHistory(sensorDataId, historyData);
     }
 }

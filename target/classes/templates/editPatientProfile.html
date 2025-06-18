@@ -12,11 +12,16 @@
 <div class="container shadow p-3 mb-5 bg-primary bg-opacity-25 rounded" style="position: relative; top: 50px;">
     <div class="container overflow-hidden">
         <div class="row gx-5">
+            <!-- Sidebar -->
             <div class="col">
                 <div class="d-flex shadow flex-column flex-shrink-0 p-3 bg-primary bg-opacity-25 rounded">
                     <a th:href="@{/patient}" class="card-link text-decoration-none text-dark">
                         <div class="card bg-primary bg-opacity-25 rounded">
-                            <img th:src="${patient.profilePicture} != null ? 'data:' + ${patient.profilePictureType} + ';base64,' + ${patient.profilePicture} : '/image/img_avatar1.png'"
+                            <img th:if="${patient.profilePicture != null}"
+                                 th:src="${'data:' + patient.profilePictureType + ';base64,' + patient.profilePicture}"
+                                 alt="Profile Picture" class="card-img-top" />
+                            <img th:if="${patient.profilePicture == null}"
+                                 th:src="@{/image/img_avatar1.png}"
                                  alt="Profile Picture" class="card-img-top" />
                             <div class="card-body">
                                 <h3 class="card-title" th:text="${patient.name}"></h3>
@@ -29,8 +34,9 @@
                     <hr>
                     <ul class="nav nav-pills flex-column mb-auto">
                         <li class="nav-item">
-                            <a href="#" class="nav-link active">Dashboard</a>
+                            <a th:href="@{/patient}" class="nav-link">Dashboard</a>
                         </li>
+                        <li><a class="nav-link active">Edit Profile</a></li>
                         <li>
                             <form th:action="@{/logout}" method="post" hidden="true" name="logoutForm"></form>
                             <a href="javascript: document.logoutForm.submit()" class="nav-link link-dark f">Logout</a>
@@ -39,8 +45,13 @@
                 </div>
             </div>
 
-            <!-- Correct form position -->
+            <!-- Main Form -->
             <div class="col-9">
+                <!-- Back Button -->
+                <form th:action="@{/patient}" method="get">
+                    <button type="submit" class="btn btn-secondary mb-3">Back to Dashboard</button>
+                </form>
+
                 <h1>Edit Profile</h1>
                 <form th:object="${patient}" th:action="@{/patient/editProfile/submit}" method="post" enctype="multipart/form-data">
                     <input type="hidden" th:field="*{userId}" />

@@ -32,9 +32,27 @@
                 </a>
                 <hr>
                 <ul class="nav nav-pills flex-column">
-                    <li><a th:href="@{/pharmacist/updateProfile}" class="nav-link link-dark f">Edit Profile</a></li>
-                    <li><a th:href="@{/pharmacist/viewMedicineList(pageNo=0)}" class="nav-link link-dark f active">Medicine List</a></li>
-                    <li><a th:href="@{/pharmacist}" class="nav-link link-dark f">Medicine Stock</a></li>
+                     <li class="nav-item">
+                                <a th:href="@{/pharmacist/updateProfile}" class="nav-link link-dark f">
+                                    Edit Profile
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a th:href="@{/pharmacist/viewMedicineList}" class="nav-link link-dark f">
+                                    Medicine List
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a th:href="@{/pharmacist}" class="nav-link link-dark f">
+                                    Medicine Stock
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link link-dark f" th:href="@{/pharmacist/patient-medicine-list}">Patient Medicines</a>
+                            </li>
+
+
                     <li>
                         <form th:action="@{/logout}" method="post" th:hidden="true" name="logoutForm"></form>
                         <a href="javascript: document.logoutForm.submit()" class="nav-link link-dark f">Logout</a>

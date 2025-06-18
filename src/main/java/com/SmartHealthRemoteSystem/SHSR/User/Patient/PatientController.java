@@ -138,33 +138,6 @@ public String updatePatientProfile(@ModelAttribute Patient updatedPatient,
 
 
 
-    
-   @GetMapping("/sensorDashboard")
-public String viewSensorDashboard(@RequestParam("patientId") String patientId, Model model) throws Exception {
-    Patient patient = patientService.getPatientById(patientId);
-    model.addAttribute("patientid", patientId);
-    model.addAttribute("patient", patient);  // ✅ This is the key
-
-    if (patient.getSensorDataId() == null || patient.getSensorDataId().isEmpty()) {
-        model.addAttribute("sensorDataList", null);
-        model.addAttribute("sensorDataListHistory", null);
-        return "sensorDashboard";
-    }
-
-    SensorData sensorData = sensorDataService.getSensorById(patient.getSensorDataId());
-
-    if (sensorData != null) {
-        model.addAttribute("sensorDataList", sensorData);
-        model.addAttribute("sensorDataListHistory", sensorData.getHistory());
-    } else {
-        model.addAttribute("sensorDataList", null);
-        model.addAttribute("sensorDataListHistory", null);
-    }
-
-    return "sensorDashboard";
-}
-
-
 
     //Pagination//
    @GetMapping("/list")
@@ -211,10 +184,14 @@ public String getAllPatientsWithPagination(Model model,
         Patient patient = patientService.getPatientById(patientId);
         Map<String, Prescription> prescriptions = patient.getPrescription();
 
-        if (prescriptions.isEmpty()) {
+        // Always pass patient even if no prescription
+        model.addAttribute("patient", patient);
+
+        if (prescriptions == null || prescriptions.isEmpty()) {
             model.addAttribute("error", "No prescription found.");
             return "viewPrescription";
         }
+
 
         Prescription latestPrescription = prescriptions.values().stream()
             .sorted(Comparator.comparing(Prescription::getTimestamp).reversed())
@@ -268,6 +245,9 @@ public String requestManualDiagnosis(@RequestParam String patientId,
     redirectAttributes.addFlashAttribute("success", "Request sent to doctor.");
     return "redirect:/predictionHistory?patientId=" + patientId;
 }
+
+
+
 
 
 }

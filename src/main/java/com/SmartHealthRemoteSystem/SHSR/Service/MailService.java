@@ -8,6 +8,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -34,28 +35,31 @@ public class MailService {
     public void sendNewUserMail(String mail, MailStructure mailStructure) {
         try {
             String subject = "Welcome to WellCheck System";
-            String message = "Your temporary password: " + mailStructure.getPassword() + "\nPlease log in and change your password.";
+            String message = "Your temporary password: " + mailStructure.getPassword() +
+                             "\nPlease log in and change your password.";
 
             sendMail(mail, subject, message);
-            logger.info("Welcome email sent to {}", mail);
+            logger.info("✅ Welcome email sent to {}", mail);
         } catch (MailException e) {
-            logger.error("Failed to send welcome email to {}: {}", mail, e.getMessage());
+            logger.error("❌ Failed to send welcome email to {}: {}", mail, e.getMessage(), e);
         }
     }
 
     public void sendMail(String mail, String subject, String message) {
-        try {
-            SimpleMailMessage email = new SimpleMailMessage();
-            email.setFrom(fromMail);
-            email.setTo(mail);
-            email.setSubject(subject);
-            email.setText(message);
-            mailSender.send(email);
-            logger.info("Email sent to {}", mail);
-        } catch (MailException e) {
-            logger.error("Email send failed to {}: {}", mail, e.getMessage());
-        }
+    try {
+        System.out.println("📤 Attempting to send email to: " + mail);  // ✅ ADD THIS
+        SimpleMailMessage email = new SimpleMailMessage();
+        email.setFrom(fromMail);
+        email.setTo(mail);
+        email.setSubject(subject);
+        email.setText(message);
+        mailSender.send(email);
+        logger.info("Email sent to {}", mail);
+    } catch (MailException e) {
+        logger.error("Email send failed to {}: {}", mail, e.getMessage());
     }
+}
+
 
     public void sendAssignedMail(String mail, String subject, String message) {
         sendMail(mail, subject, message);

@@ -6,6 +6,7 @@ import com.SmartHealthRemoteSystem.SHSR.User.Doctor.DoctorRepository;
 import com.SmartHealthRemoteSystem.SHSR.User.Patient.Patient;
 import com.SmartHealthRemoteSystem.SHSR.User.Patient.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,8 @@ public class PatientService {
     private PatientRepository patientRepository;
     @Autowired
     private  DoctorRepository doctorRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public String createPatient(Patient patient) throws ExecutionException, InterruptedException {
         return patientRepository.save(patient);
@@ -53,6 +56,18 @@ public class PatientService {
 
     public Doctor getDoctor(String doctorId) throws ExecutionException, InterruptedException {
     return doctorRepository.get(doctorId);
+    }
+
+    public String resetPatientPassword(String patientId, String newPlainPassword) throws ExecutionException, InterruptedException {
+    Patient patient = patientRepository.get(patientId);
+    if (patient == null) {
+        return "❌ Patient not found: " + patientId;
+    }
+
+    String encodedPassword = passwordEncoder.encode(newPlainPassword);
+    patient.setPassword(encodedPassword);
+
+    return patientRepository.save(patient); // Will update both Patient and User collections
 }
 
 

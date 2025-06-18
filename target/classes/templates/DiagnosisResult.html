@@ -58,19 +58,24 @@
                 </div>
             </div>
 
-            <!-- Only show table if prediction is approved -->
-            <div th:if="${predictionApproved}">
-                <h5>Diagnosis & Probabilities</h5>
+            <!-- Only show precautions to patient -->
+            <div>
+                <h5>Recommended Health Tips Based On Your Symptoms</h5>
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
-                            <tr><th>Disease</th><th>Probability (%)</th></tr>
+                        <tr>
+                            <th>Precaution Tips</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="disease, iterStat : ${diseases}">
-                                <td th:text="${disease}"></td>
-                                <td th:text="${probabilities[iterStat.index]}"></td>
-                            </tr>
+                        <tr th:each="precautionList : ${precautions}">
+                            <td>
+                                <ul>
+                                    <li th:each="tip : ${precautionList}" th:text="${tip}"></li>
+                                </ul>
+                            </td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>

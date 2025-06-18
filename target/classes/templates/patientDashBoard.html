@@ -52,7 +52,7 @@
                     </li>
                     <li>
                         <a th:href="@{/patient/editProfile(patientId=${patient?.userId})}" class="nav-link link-dark f">
-                            Edit Profile
+                            Edit Profile 
                         </a>
                     </li>
                     <li>
@@ -94,7 +94,7 @@
                         <a th:href="@{/patient/viewPrescription(pageNo=-1)}"
                            class="list-group-item m-3 d-flex justify-content-center align-items-center bg-primary bg-opacity-50 rounded"
                            style="height: 75px;">
-                            <h3>View Doctor's Prescription</h3>
+                            <h3>View Latest Doctor's Prescription</h3>
                         </a>
 
                         <form th:action="@{/Health-status/viewHealthStatusForm}" method="post" hidden name="healthStatusForm">

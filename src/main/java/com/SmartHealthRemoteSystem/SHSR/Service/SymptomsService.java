@@ -151,13 +151,22 @@ public class SymptomsService {
         symptomRepository.deleteById(id);
     }
 
+
+    // 🔧 STEP 1: Add normalizeSymptom function here:
+    public String normalizeSymptom(String symptomName) {
+        return symptomName.replace("_", " ").toLowerCase().trim();
+    }
+
     public int getSymptomWeight(String symptomName) {
-        // Normalize (replace _ with space)
-        String normalizedName = symptomName.replace("_", " ").trim();
+        String normalizedName = normalizeSymptom(symptomName);
         Symptom symptom = symptomRepository.findByNameIgnoreCase(normalizedName);
         if (symptom != null && symptom.getWeight() != null) {
             return symptom.getWeight();
+        } else {
+            System.out.println("⚠ Symptom not found: " + normalizedName);
+            return 0;
         }
-        return 0;
     }
+
+
 }

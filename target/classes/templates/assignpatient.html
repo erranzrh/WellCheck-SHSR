@@ -53,7 +53,7 @@ and open the template in the editor.
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a th:href="@{/doctor/myPatient(pageNo=0)}" class="nav-link link-dark f">
+                            <a th:href="@{/doctor/myPatient}" class="nav-link link-dark f">
                                 My Patient
                             </a>
                         </li>
@@ -68,6 +68,10 @@ and open the template in the editor.
                                 List of Assigned Patient
                             </a>
                         </li>
+                        
+                          <li>
+    <a th:href="@{/doctor/predictionReview}" class="nav-link link-dark f">Prediction Review</a>
+</li>
                         <!---izzat-->
                         <li>
                             <form th:action="@{/logout}" method="post" hidden="true" name="logoutForm">

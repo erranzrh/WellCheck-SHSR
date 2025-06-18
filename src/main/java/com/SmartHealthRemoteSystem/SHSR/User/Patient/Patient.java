@@ -3,6 +3,7 @@ package com.SmartHealthRemoteSystem.SHSR.User.Patient;
 
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -11,6 +12,7 @@ import com.SmartHealthRemoteSystem.SHSR.Prediction.Prediction;
 import com.SmartHealthRemoteSystem.SHSR.User.User;
 import com.SmartHealthRemoteSystem.SHSR.ViewDoctorPrescription.Prescription;
 import com.SmartHealthRemoteSystem.SHSR.ProvideDiagnosis.Diagnosis;
+import com.SmartHealthRemoteSystem.SHSR.Symptoms.Symptom;
 
 
 @Document(collection = "Patient")  // Store in same collection as Patient       
@@ -27,6 +29,7 @@ public class Patient extends User {
     private String profilePicture;
     private String profilePictureType; // e.g., "image/png", "image/jpeg"
     private boolean needsManualDiagnosis = false;
+    private Map<String, List<Symptom>> symptomsList = new HashMap<>();
     
 
     public Patient() {
@@ -137,7 +140,13 @@ public void setNeedsManualDiagnosis(boolean needsManualDiagnosis) {
     this.needsManualDiagnosis = needsManualDiagnosis;
 }
 
+public Map<String, List<Symptom>> getSymptomsList() {
+    return symptomsList;
+}
 
+public void setSymptomsList(Map<String, List<Symptom>> symptomsList) {
+    this.symptomsList = symptomsList;
+}
 
     
 

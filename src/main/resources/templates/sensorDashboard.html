@@ -36,22 +36,22 @@
     <h4>Latest Sensor Data</h4>
     <table class="table table-bordered">
         <thead>
-            <tr>
-                <th>Body Temp (°C)</th>
-                <th>SpO₂ (%)</th>
-                <th>ECG</th>
-                <th>Heart Rate</th>
-                <th>Timestamp</th>
-            </tr>
+        <tr>
+            <th>Body Temp (°C)</th>
+            <th>SpO₂ (%)</th>
+            <th>ECG</th>
+            <th>Heart Rate</th>
+            <th>Timestamp</th>
+        </tr>
         </thead>
         <tbody>
-            <tr>
-                <td th:class="${sensorData.bodyTemperature > 37.2} ? 'abnormal' : 'normal'" th:text="${sensorData.bodyTemperature}"></td>
-                <td th:class="${sensorData.oxygenReading < 94} ? 'abnormal' : 'normal'" th:text="${sensorData.oxygenReading}"></td>
-                <td th:text="${sensorData.ecgReading}"></td>
-                <td th:class="${sensorData.heart_Rate > 90} ? 'abnormal' : 'normal'" th:text="${sensorData.heart_Rate}"></td>
-                <td th:text="${#dates.format(sensorData.timestamp, 'dd MMM yyyy HH:mm')}"></td>
-            </tr>
+        <tr>
+            <td th:class="${sensorData.bodyTemperature > 37.2} ? 'abnormal' : 'normal'" th:text="${sensorData.bodyTemperature}"></td>
+            <td th:class="${sensorData.oxygenReading < 94} ? 'abnormal' : 'normal'" th:text="${sensorData.oxygenReading}"></td>
+            <td th:text="${sensorData.ecgReading}"></td>
+            <td th:class="${sensorData.heart_Rate > 90} ? 'abnormal' : 'normal'" th:text="${sensorData.heart_Rate}"></td>
+            <td th:text="${#dates.format(sensorData.timestamp, 'dd MMM yyyy HH:mm')}"></td>
+        </tr>
         </tbody>
     </table>
 </div>
@@ -73,25 +73,25 @@
     <h4>History Data</h4>
     <table class="table table-bordered">
         <thead>
-            <tr>
-                <th>Body Temp (°C)</th>
-                <th>SpO₂ (%)</th>
-                <th>ECG</th>
-                <th>Heart Rate</th>
-                <th>Timestamp</th>
-            </tr>
+        <tr>
+            <th>Body Temp (°C)</th>
+            <th>SpO₂ (%)</th>
+            <th>ECG</th>
+            <th>Heart Rate</th>
+            <th>Timestamp</th>
+        </tr>
         </thead>
         <tbody>
-            <tr th:if="${#lists.isEmpty(sensorDataPage)}">
-                <td colspan="5" class="text-center">No history data available.</td>
-            </tr>
-            <tr th:each="historyItem : ${sensorDataPage}">
-                <td th:text="${historyItem.bodyTemperature}" th:class="${historyItem.bodyTemperature > 37.2 or historyItem.bodyTemperature < 36.1} ? 'abnormal' : 'normal'"></td>
-                <td th:class="${historyItem.oxygenReading < 94} ? 'abnormal' : 'normal'" th:text="${historyItem.oxygenReading}"></td>
-                <td th:text="${historyItem.ecgReading}"></td>
-                <td th:class="${historyItem.heart_Rate > 90} ? 'abnormal' : 'normal'" th:text="${historyItem.heart_Rate}"></td>
-                <td th:text="${#dates.format(historyItem.timestamp, 'dd MMM yyyy HH:mm')}"></td>
-            </tr>
+        <tr th:if="${#lists.isEmpty(sensorDataPage)}">
+            <td colspan="5" class="text-center">No history data available.</td>
+        </tr>
+        <tr th:each="historyItem : ${sensorDataPage}">
+            <td th:text="${historyItem.bodyTemperature}" th:class="${historyItem.bodyTemperature > 37.2 or historyItem.bodyTemperature < 36.1} ? 'abnormal' : 'normal'"></td>
+            <td th:class="${historyItem.oxygenReading < 94} ? 'abnormal' : 'normal'" th:text="${historyItem.oxygenReading}"></td>
+            <td th:text="${historyItem.ecgReading}"></td>
+            <td th:class="${historyItem.heart_Rate > 90} ? 'abnormal' : 'normal'" th:text="${historyItem.heart_Rate}"></td>
+            <td th:text="${#dates.format(historyItem.timestamp, 'dd MMM yyyy HH:mm')}"></td>
+        </tr>
         </tbody>
     </table>
 
@@ -107,26 +107,26 @@
     </nav>
 </div>
 
-<!-- ✅ Graph View Only -->
+<!-- ✅ Graph View -->
 <div th:if="${latestFiveReadings != null and !#lists.isEmpty(latestFiveReadings)}" class="mt-5">
     <h4>Graph View (Latest 5 Readings)</h4>
     <canvas id="sensorChart" height="120"></canvas>
 
-    <!-- JSON data for Chart -->
-    <script id="sensorDataJson" type="application/json" th:inline="none">
-        [
-            <th:block th:each="item,iter : ${latestFiveReadings}">
-                <th:if th:test="${item != null and item.timestamp != null}">
-                {
-                    "timestamp": "[[${#dates.format(item.timestamp, 'HH:mm:ss')}]]",
-                    "temp": [[${item.bodyTemperature}]],
-                    "hr": [[${item.heart_Rate}]],
-                    "spo2": [[${item.oxygenReading}]],
-                    "ecg": [[${item.ecgReading}]]
-                }<th:if th:test="${!iter.last}">,</th:if>
-                </th:if>
-            </th:block>
-        ]
+    <!-- Safe JavaScript Data Injection -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const sensorData = [
+            /*[# th:each="item,iter : ${latestFiveReadings}" ]*/
+            {
+                timestamp: /*[[${#dates.format(item.timestamp, 'HH:mm:ss')}]]*/,
+                temp: /*[[${item.bodyTemperature}]]*/,
+                hr: /*[[${item.heart_Rate}]]*/,
+                spo2: /*[[${item.oxygenReading}]]*/,
+                ecg: /*[[${item.ecgReading}]]*/
+            }/*[# th:if="${!iter.last}" ]*/,/*[/]*/
+            /*[/]*/
+        ];
+        /*]]>*/
     </script>
 </div>
 
@@ -143,38 +143,31 @@
 <!-- Chart Rendering -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const dataJson = document.getElementById("sensorDataJson").textContent.trim();
-        if (dataJson.startsWith("[") && dataJson.endsWith("]")) {
-            try {
-                const data = JSON.parse(dataJson);
+        if (typeof sensorData !== "undefined" && Array.isArray(sensorData)) {
+            const labels = sensorData.map(e => e.timestamp).reverse();
+            const temps = sensorData.map(e => e.temp).reverse();
+            const heartRates = sensorData.map(e => e.hr).reverse();
+            const spo2s = sensorData.map(e => e.spo2).reverse();
+            const ecgs = sensorData.map(e => e.ecg).reverse();
 
-                const labels = data.map(e => e.timestamp).reverse();
-                const temps = data.map(e => e.temp).reverse();
-                const heartRates = data.map(e => e.hr).reverse();
-                const spo2s = data.map(e => e.spo2).reverse();
-                const ecgs = data.map(e => e.ecg).reverse();
-
-                const ctx = document.getElementById('sensorChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            { label: 'Temp (°C)', data: temps, borderColor: 'blue', tension: 0.4 },
-                            { label: 'Heart Rate', data: heartRates, borderColor: 'green', tension: 0.4 },
-                            { label: 'SpO₂ (%)', data: spo2s, borderColor: 'orange', tension: 0.4 },
-                            { label: 'ECG', data: ecgs, borderColor: 'purple', tension: 0.4 }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { position: 'bottom' } },
-                        scales: { y: { beginAtZero: false } }
-                    }
-                });
-            } catch (e) {
-                console.error("Failed to parse sensor data:", e);
-            }
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Temp (°C)', data: temps, borderColor: 'blue', tension: 0.4 },
+                        { label: 'Heart Rate', data: heartRates, borderColor: 'green', tension: 0.4 },
+                        { label: 'SpO₂ (%)', data: spo2s, borderColor: 'orange', tension: 0.4 },
+                        { label: 'ECG', data: ecgs, borderColor: 'purple', tension: 0.4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
         }
     });
 </script>

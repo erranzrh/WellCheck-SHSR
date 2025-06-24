@@ -13,7 +13,12 @@
         <!-- Sidebar -->
         <div class="col-3">
             <div class="card bg-primary bg-opacity-25 rounded p-3">
-                <img class="card-img-top" src="/image/img_avatar1.png" alt="Card image">
+                <img th:if="${patient.profilePicture != null}"
+                                 th:src="${'data:' + patient.profilePictureType + ';base64,' + patient.profilePicture}"
+                                 alt="Profile Picture" class="card-img-top" />
+                            <img th:if="${patient.profilePicture == null}"
+                                 th:src="@{/image/img_avatar1.png}"
+                                 alt="Profile Picture" class="card-img-top" />
                 <div class="card-body">
                     <h4 class="card-title" th:text="${patient.name}">Patient Name</h4>
                     <p>Patient Contact No.: <span th:text="${patient.contact}"></span></p>

@@ -1,12 +1,13 @@
 package com.SmartHealthRemoteSystem.SHSR.ReadSensorData;
 
-import com.fazecast.jSerialComm.SerialPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fazecast.jSerialComm.SerialPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Scanner;
 
@@ -16,86 +17,91 @@ public class SerialReader {
     @Autowired
     private SensorDataRepository sensorDataRepository;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @PostConstruct
     public void init() {
-        new Thread(this::readSerial).start();
+        new Thread(this::readSerial, "Serial-COM4").start();
     }
 
+    /* ---------------------------------------------------------------------- */
     private void readSerial() {
-        SerialPort port = SerialPort.getCommPort("COM4"); // ✅ Update with your actual COM port
+        SerialPort port = SerialPort.getCommPort("COM4");
         port.setBaudRate(9600);
+        port.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 0, 0);
 
-        if (port.openPort()) {
-            System.out.println("✅ Serial port opened successfully.");
-            System.out.println("📡 Listening on port COM4...");
-            try (InputStream in = port.getInputStream(); Scanner scanner = new Scanner(in)) {
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    System.out.println("📩 RAW LINE: " + line); // ✅ Print raw input
-                    processLine(line);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                port.closePort();
-                System.out.println("⚠ Serial port closed.");
-            }
-        } else {
-            System.out.println("❌ Failed to open serial port.");
+        if (!port.openPort()) {
+            System.out.println("❌  Could NOT open COM4");
+            return;
         }
-    }
+        System.out.println("✅  COM4 opened → listening …");
 
-    private void processLine(String line) {
-        try {
-            SensorReading reading = objectMapper.readValue(line, SensorReading.class);
-            System.out.println("✅ Parsed sensor reading: Temp=" + reading.temperature + ", HR=" + reading.heartRate + ", ECG=" + reading.ecgValue);
+        try (InputStream in = port.getInputStream();
+             Scanner sc = new Scanner(in, StandardCharsets.UTF_8)) {
 
-            String sensorDataId = "demoSensor01";  // ✅ For demo patient Aina12
+            while (sc.hasNextLine()) {
+                String raw = sc.nextLine().trim();
 
-            SensorData existingSensorData = sensorDataRepository.get(sensorDataId);
+                if (raw.length() < 3 || raw.charAt(0) != '{') {   // banner or empty
+                    System.out.println("⚠  Skipped: " + raw);
+                    continue;
+                }
+                /* ---- parse JSON ---- */
+                try {
+                    SensorReading r = mapper.readValue(raw, SensorReading.class);
 
-            if (existingSensorData == null) {
-                SensorData newSensorData = new SensorData();
-                newSensorData.setSensorDataId(sensorDataId);
-                newSensorData.setHeart_Rate(reading.heartRate);
-                newSensorData.setEcgReading(reading.ecgValue);
-                newSensorData.setBodyTemperature(reading.temperature);
-                newSensorData.setOxygenReading(0);
-                newSensorData.setTimestamp(Instant.now());
+                    /* save / update */
+                    upsertSensor("demoSensor01", r);
 
-                sensorDataRepository.save(newSensorData);
-                System.out.println("✅ New SensorData created in MongoDB.");
-            } else {
-                existingSensorData.setHeart_Rate(reading.heartRate);
-                existingSensorData.setEcgReading(reading.ecgValue);
-                existingSensorData.setBodyTemperature(reading.temperature);
-                existingSensorData.setTimestamp(Instant.now());
-
-                sensorDataRepository.update(existingSensorData);
-                System.out.println("✅ SensorData updated in MongoDB.");
-
-                HistorySensorData historyEntry = new HistorySensorData(
-                        reading.heartRate,
-                        reading.temperature,
-                        reading.ecgValue,
-                        0
-                );
-                sensorDataRepository.addToHistory(sensorDataId, historyEntry);
-                System.out.println("✅ History updated in MongoDB.");
+                } catch (Exception ex) {
+                    System.err.println("❌  JSON parse error: " + raw);
+                    ex.printStackTrace();
+                }
             }
 
         } catch (Exception e) {
-            System.err.println("❌ Error parsing incoming serial data: " + line);
             e.printStackTrace();
+        } finally {
+            port.closePort();
+            System.out.println("⚠  COM4 closed");
         }
     }
 
-    // ✅ Inner class to receive JSON-formatted serial data
+    /* ------------------------------------------------------------------ */
+    private void upsertSensor(String sensorId, SensorReading r) {
+
+        SensorData data = sensorDataRepository.get(sensorId);
+
+        if (data == null) {
+            data = new SensorData();
+            data.setSensorDataId(sensorId);
+        }
+        data.setHeart_Rate(r.heartRate);
+        data.setEcgReading(r.ecgValue);
+        data.setBodyTemperature(r.temperature);
+        data.setOxygenReading(r.oxygenReading);
+        data.setTimestamp(Instant.now());
+
+        if (sensorDataRepository.get(sensorId) == null) {
+            sensorDataRepository.save(data);
+            System.out.println("✅  Inserted new SensorData");
+        } else {
+            sensorDataRepository.update(data);
+            System.out.println("✅  Updated SensorData");
+        }
+
+        /* ---- append history ---- */
+        HistorySensorData h =
+                new HistorySensorData(r.heartRate, r.temperature,
+                                      r.ecgValue, r.oxygenReading);
+        sensorDataRepository.addToHistory(sensorId, h);
+    }
+
+    /* ------------------------------------------------------------------ */
     public static class SensorReading {
-        public int heartRate;
+        public int    heartRate;
         public double ecgValue;
         public double temperature;
+        public int    oxygenReading;
     }
 }

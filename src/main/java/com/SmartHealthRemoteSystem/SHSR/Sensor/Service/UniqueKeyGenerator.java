@@ -24,8 +24,10 @@ public class UniqueKeyGenerator {
         String uniqueKey = UUID.randomUUID().toString();
 
         // Check key existence
-        Query query = new Query(Criteria.where("key").is(uniqueKey));
+        // ✅ consistent field name
+        Query query = new Query(Criteria.where("uniqueKey").is(uniqueKey));
         boolean exists = mongoTemplate.exists(query, COLLECTION_NAME);
+
 
         if (exists) {
             // Recursive regenerate if collision occurs (very rare for UUID)

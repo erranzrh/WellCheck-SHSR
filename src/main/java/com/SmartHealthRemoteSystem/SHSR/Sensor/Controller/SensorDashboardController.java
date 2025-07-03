@@ -3,11 +3,9 @@ package com.SmartHealthRemoteSystem.SHSR.Sensor.Controller;
 import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.HistorySensorData;
 import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.SensorData;
 import com.SmartHealthRemoteSystem.SHSR.Service.SensorDataService;
-import com.SmartHealthRemoteSystem.SHSR.User.Patient.Patient;
 import com.SmartHealthRemoteSystem.SHSR.Service.PatientService;
+import com.SmartHealthRemoteSystem.SHSR.User.Patient.Patient;
 import com.SmartHealthRemoteSystem.SHSR.WebConfiguration.MyUserDetails;
-
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -16,88 +14,104 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
+@RequestMapping("/patient")   // ONE base-path – patient version mounts here
 public class SensorDashboardController {
 
-    @Autowired
-    private SensorDataService sensorDataService;
+    @Autowired private SensorDataService sensorDataService;
+    @Autowired private PatientService    patientService;
 
-    @Autowired
-    private PatientService patientService;
+    /* ────────────────────────────────────────────────────────────────
+       PATIENT route → /patient/sensorDashboard
+       ──────────────────────────────────────────────────────────────── */
+    @GetMapping("/sensorDashboard")
+    public String patientSensorDashboard(
+            @RequestParam(value = "patientId", required = false) String patientIdParam,
+            @RequestParam(value = "page",       defaultValue = "1") int page,
+            @RequestParam(value = "filterDate", required = false)   String filterDate,
+            Model model) throws Exception {
 
-  @GetMapping("/patient/sensorDashboard")
-public String viewSensorDashboard(
-        @RequestParam(value = "patientId", required = false) String patientIdParam,
-        @RequestParam(value = "role", defaultValue = "patient") String role,
-        @RequestParam(value = "page", required = false, defaultValue = "1") int page,
-        @RequestParam(value = "filterDate", required = false) String filterDate,
-        Model model) throws Exception {
-
-    // Step 1: Determine current user or passed-in patient
-    String patientId;
-    if (patientIdParam != null && !patientIdParam.isEmpty()) {
-        patientId = patientIdParam; // doctor/admin viewing another patient
-    } else {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
-        patientId = userDetails.getUsername(); // current logged-in patient
+        // delegate to shared method (role = "patient")
+        return buildDashboard(patientIdParam, "patient", page, filterDate, model);
     }
 
-    Patient patient = patientService.getPatientById(patientId);
-    model.addAttribute("patient", patient);
-    model.addAttribute("patientid", patientId);
-    model.addAttribute("role", role);
+    /* =================================================================
+       SHARED IMPLEMENTATION – made PUBLIC so DoctorController can call
+       ================================================================= */
+    public String buildDashboard(String patientIdParam,
+                                 String role,
+                                 int    page,
+                                 String filterDate,
+                                 Model  model) throws Exception {
 
-    // Step 2: Handle missing sensor
-    if (patient.getSensorDataId() == null || patient.getSensorDataId().isEmpty()) {
-        model.addAttribute("sensorData", null);
-        model.addAttribute("sensorDataPage", null);
-        model.addAttribute("latestFiveReadings", null);
-        model.addAttribute("currentPage", 1);
-        model.addAttribute("totalPages", 1);
+        /* 1️⃣  Who is the patient? */
+        String patientId;
+        if (patientIdParam != null && !patientIdParam.isEmpty()) {
+            patientId = patientIdParam;                       // doctor/admin view
+        } else {                                              // logged-in patient
+            Authentication auth  = SecurityContextHolder.getContext().getAuthentication();
+            MyUserDetails user   = (MyUserDetails) auth.getPrincipal();
+            patientId            = user.getUsername();
+        }
+
+        Patient patient = patientService.getPatientById(patientId);
+        model.addAttribute("patient",   patient);
+        model.addAttribute("patientid", patientId);
+        model.addAttribute("role",      role);                // back-button support
+
+        /* 2️⃣  No sensor yet */
+        if (patient.getSensorDataId() == null || patient.getSensorDataId().isEmpty()) {
+            model.addAttribute("sensorData",         null);
+            model.addAttribute("sensorDataPage",     null);
+            model.addAttribute("latestFiveReadings", null);
+            model.addAttribute("currentPage", 1);
+            model.addAttribute("totalPages",  1);
+            return "sensorDashboard";
+        }
+
+        /* 3️⃣  Load sensor + history */
+        SensorData sensorData = sensorDataService.getSensorById(patient.getSensorDataId());
+        model.addAttribute("sensorData", sensorData);
+
+        if (sensorData == null || sensorData.getHistory() == null) {
+            model.addAttribute("sensorDataPage",     null);
+            model.addAttribute("latestFiveReadings", null);
+            model.addAttribute("currentPage", 1);
+            model.addAttribute("totalPages",  1);
+            return "sensorDashboard";
+        }
+
+        /* 4️⃣  Prepare history list (max 50, newest first) */
+        List<HistorySensorData> history = sensorData.getHistory()
+                                                   .stream()
+                                                   .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
+                                                   .limit(50)
+                                                   .toList();
+
+        /* 5️⃣  Optional date-filter */
+        if (filterDate != null && !filterDate.isEmpty()) {
+            history = history.stream()
+                             .filter(h -> h.getTimestamp().toString().startsWith(filterDate))
+                             .toList();
+            model.addAttribute("filterDate", filterDate);
+        }
+
+        /* 6️⃣  Pagination */
+        int pageSize = 5;
+        int start    = Math.max(0, (page - 1) * pageSize);
+        int end      = Math.min(start + pageSize, history.size());
+
+        model.addAttribute("sensorDataPage", history.subList(start, end));
+        model.addAttribute("currentPage",    page);
+        model.addAttribute("totalPages",
+                           (int) Math.ceil((double) history.size() / pageSize));
+
+        /* 7️⃣  Spark-line / chart (latest 5) */
+        model.addAttribute("latestFiveReadings",
+                           history.stream().limit(5).toList());
+
         return "sensorDashboard";
     }
-
-    // Step 3: Load sensor data
-    SensorData sensorData = sensorDataService.getSensorById(patient.getSensorDataId());
-    model.addAttribute("sensorData", sensorData);
-
-    if (sensorData == null || sensorData.getHistory() == null) {
-        model.addAttribute("sensorDataPage", null);
-        model.addAttribute("latestFiveReadings", null);
-        model.addAttribute("currentPage", 1);
-        model.addAttribute("totalPages", 1);
-        return "sensorDashboard";
-    }
-
-    // ✅ Step 4: Get and sort history
-    List<HistorySensorData> history = sensorData.getHistory();
-    history.sort((a, b) -> b.getTimestamp().compareTo(a.getTimestamp())); // newest first
-    List<HistorySensorData> top50 = history.stream().limit(50).toList();
-
-    // Step 5: Apply filter if present
-    if (filterDate != null && !filterDate.isEmpty()) {
-        top50 = top50.stream()
-            .filter(h -> h.getTimestamp().toString().startsWith(filterDate))
-            .toList();
-        model.addAttribute("filterDate", filterDate);
-    }
-
-    // Step 6: Apply pagination
-    int pageSize = 5;
-    int start = Math.max(0, (page - 1) * pageSize);
-    int end = Math.min(start + pageSize, top50.size());
-    List<HistorySensorData> paginated = top50.subList(start, end);
-
-    model.addAttribute("sensorDataPage", paginated);
-    model.addAttribute("currentPage", page);
-    model.addAttribute("totalPages", (int) Math.ceil((double) top50.size() / pageSize));
-
-    // Step 7: Latest 5 readings
-    model.addAttribute("latestFiveReadings", top50.stream().limit(5).toList());
-
-    return "sensorDashboard";
-}
-
-
 }

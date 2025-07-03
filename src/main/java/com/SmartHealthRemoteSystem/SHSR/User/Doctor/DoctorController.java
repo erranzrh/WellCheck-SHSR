@@ -2,6 +2,7 @@ package com.SmartHealthRemoteSystem.SHSR.User.Doctor;
 
 import com.SmartHealthRemoteSystem.SHSR.Prediction.Prediction;
 import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.SensorData;
+import com.SmartHealthRemoteSystem.SHSR.Sensor.Controller.SensorDashboardController;
 import com.SmartHealthRemoteSystem.SHSR.Service.DiseaseDescriptionService;
 import com.SmartHealthRemoteSystem.SHSR.Service.DoctorService;
 import com.SmartHealthRemoteSystem.SHSR.Service.PatientService;
@@ -39,6 +40,9 @@ public class DoctorController {
 
     @Autowired
     private DiseaseDescriptionService descriptionService;
+
+    @Autowired
+     private SensorDashboardController dashboardController;
 
 
     @GetMapping
@@ -119,30 +123,25 @@ public String updateProfile(@ModelAttribute Doctor updatedDoctor,
 }
 
 
+     /* ======  SENSOR  DASHBOARD  ================================================= */
     @GetMapping("/sensorDashboard")
-public String viewSensorDashboard(@RequestParam("patientId") String patientId, Model model) throws Exception {
-    Patient patient = patientService.getPatientById(patientId);
-    model.addAttribute("patientid", patientId);
+    public String viewSensorDashboard(@RequestParam("patientId") String patientId,
+                                      @RequestParam(value = "page",       defaultValue = "1") int    page,
+                                      @RequestParam(value = "filterDate", required  = false)  String filterDate,
+                                      Model model) throws Exception {
 
-    if (patient.getSensorDataId() == null || patient.getSensorDataId().isEmpty()) {
-        model.addAttribute("sensorData", null);
-        model.addAttribute("sensorDataPage", null);
-        model.addAttribute("latestFiveReadings", null);
-        model.addAttribute("role", "doctor"); // ✅ this is needed for the back button
-        return "sensorDashboard";
+        /* Delegate to the shared helper:
+             patientId   → record to show
+             role        → "doctor"  (back-button in the view relies on this)
+             page        → current page number (history pagination)
+             filterDate  → optional YYYY-MM-DD filter
+        */
+        return dashboardController.buildDashboard(patientId,
+                                                  "doctor",
+                                                  page,
+                                                  filterDate,
+                                                  model);
     }
-
-    SensorData sensorData = sensorDataService.getSensorById(patient.getSensorDataId());
-    model.addAttribute("sensorData", sensorData);
-    model.addAttribute("sensorDataPage", sensorData.getHistory());
-    model.addAttribute("latestFiveReadings", sensorData.getHistory().stream()
-        .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
-        .limit(5)
-        .toList());
-    model.addAttribute("role", "doctor"); // ✅ make sure this is passed
-    return "sensorDashboard";
-}
-
 
     @GetMapping("manualDiagnosisRequests")
     public String getManualDiagnosisRequests(Model model) throws ExecutionException, InterruptedException {

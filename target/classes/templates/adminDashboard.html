@@ -59,11 +59,21 @@
             <div class="admin_user_table ">
                 <div class="admin_table_nav">
                     <div>
-                        <button type="button" class="patientBtn admin_navBtn admin_navBtn_active">Patient</button>
-                        <button type="button" class="doctorBtn admin_navBtn">Doctor</button>
-                        <button type="button" class="adminBtn admin_navBtn">Admin</button>
-                        <button type="button" class="pharmacistBtn admin_navBtn">Pharmacist</button>
-                        <button type="button" class="asspatBtn admin_navBtn">Assigned Patient</button>
+                        <button type="button" class="patientBtn admin_navBtn"
+        th:classappend="${currentTab} == 'patient' ? ' admin_navBtn_active'">Patient</button>
+
+<button type="button" class="doctorBtn admin_navBtn"
+        th:classappend="${currentTab} == 'doctor' ? ' admin_navBtn_active'">Doctor</button>
+
+<button type="button" class="adminBtn admin_navBtn"
+        th:classappend="${currentTab} == 'admin' ? ' admin_navBtn_active'">Admin</button>
+
+<button type="button" class="pharmacistBtn admin_navBtn"
+        th:classappend="${currentTab} == 'pharmacist' ? ' admin_navBtn_active'">Pharmacist</button>
+
+<button type="button" class="asspatBtn admin_navBtn"
+        th:classappend="${currentTab} == 'assigned' ? ' admin_navBtn_active'">Assigned Patient</button>
+
                        
 
                         
@@ -74,7 +84,8 @@
 
 
 <!--patient table-->
-<div class="user_table tableActive">
+<div class="user_table"
+     th:classappend="${currentTab} == 'patient' ? ' tableActive'">
     <!-- search bar patient -->
     <div style="padding-left: 10;">
         <input type="text" placeholder="Enter keyword to search" id="search-input-patient" style="width: 50%; padding-left: 10px;" class="search-input">
@@ -163,9 +174,12 @@
 <!-- Your existing HTML code -->
 
 
-                </div>
+</div>
+
+                
                 <!--doctor table-->
-                <div class="user_table">
+            <div class="user_table"
+     th:classappend="${currentTab} == 'doctor' ? ' tableActive'">
                     <!-- search bar doctor -->
                     <div style="padding-left: 10;">
                         <input type="text" placeholder="Enter keyword to search" id="search-input-doctor" style="width: 50%; padding-left: 10px;" class="search-input">
@@ -241,7 +255,8 @@
                 </div>
 
                  <!--pharmacist table-->
-                 <div class="user_table">
+                 <div class="user_table"
+     th:classappend="${currentTab} == 'pharmacist' ? ' tableActive'">
                     <!-- search bar pharmacsit -->
                     <div style="padding-left: 10;">
                         <input type="text" placeholder="Enter keyword to search" id="search-input-pharmacist" style="width: 50%; padding-left: 10px;" class="search-input">
@@ -318,7 +333,8 @@
                 
 
                 <!--Admin Table-->
-                <div class="user_table">
+                <div class="user_table"
+     th:classappend="${currentTab} == 'admin' ? ' tableActive'">
                     <!-- search bar admin -->
                     <div style="padding-left: 10;">
                         <input type="text" placeholder="Enter keyword to search" id="search-input-admin" style="width: 50%; padding-left: 10px;" class="search-input">
@@ -393,7 +409,8 @@
                 </div>
 
               <!--Assigned Patient table-->
-<div class="user_table">
+<div class="user_table"
+     th:classappend="${currentTab} == 'assigned' ? ' tableActive'">
     <!-- 🔽 Filter dropdown -->
     <div class="d-flex justify-content-end mb-3">
         <select id="filterAssigned" class="form-select" style="width: 200px;">

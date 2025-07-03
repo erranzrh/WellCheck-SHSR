@@ -11,7 +11,7 @@ import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.HistorySensorData;
 import java.time.Instant;
 import java.util.List;
 
-@Document(collection = "SensorData")
+@Document(collection = "Sensor")
 public class Sensor {
 
     private String sensorDataId;

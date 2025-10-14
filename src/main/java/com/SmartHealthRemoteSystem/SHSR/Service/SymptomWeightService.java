@@ -3,6 +3,9 @@ package com.SmartHealthRemoteSystem.SHSR.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.stereotype.Service;
+
+@Service 
 public class SymptomWeightService {
 
     private static final Map<String, Integer> symptomWeights = new HashMap<>();

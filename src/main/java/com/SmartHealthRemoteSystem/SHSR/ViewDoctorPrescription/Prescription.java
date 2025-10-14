@@ -1,7 +1,4 @@
 
-
-
-
 //MongoDB//
 package com.SmartHealthRemoteSystem.SHSR.ViewDoctorPrescription;
 

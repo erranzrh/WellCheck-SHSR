@@ -3,6 +3,7 @@ package com.SmartHealthRemoteSystem.SHSR.ReadSensorData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fazecast.jSerialComm.SerialPort;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -11,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Scanner;
 
+@Profile("local")
 @Component
 public class SerialReader {
 

@@ -1,5 +1,3 @@
-//MONGODB//
-//V2//
 package com.SmartHealthRemoteSystem.SHSR.User.Patient;
 
 import java.util.Base64;
@@ -8,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import com.SmartHealthRemoteSystem.SHSR.ReadSensorData.SensorData;
 import com.SmartHealthRemoteSystem.SHSR.Service.DoctorService;
 import com.SmartHealthRemoteSystem.SHSR.Service.PatientService;
@@ -47,8 +43,8 @@ public class PatientController {
     }
 
     // After login → go here
-    @GetMapping
-    public String getPatientDashboard(Model model) throws ExecutionException, InterruptedException {
+        @GetMapping
+        public String getPatientDashboard(Model model) throws ExecutionException, InterruptedException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         MyUserDetails myUserDetails = (MyUserDetails) auth.getPrincipal();
     
@@ -80,7 +76,7 @@ public class PatientController {
     
 
     @GetMapping("/editProfile")
-   public String editProfile(Model model) throws ExecutionException, InterruptedException {
+    public String editProfile(Model model) throws ExecutionException, InterruptedException {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
 
@@ -89,8 +85,8 @@ public class PatientController {
     return "editPatientProfile";
 }
 
-@PostMapping("/editProfile/submit")
-public String updatePatientProfile(@ModelAttribute Patient updatedPatient,
+    @PostMapping("/editProfile/submit")
+    public String updatePatientProfile(@ModelAttribute Patient updatedPatient,
                                    @RequestParam("imageFile") MultipartFile imageFile,
                                    Model model) throws Exception {
     // ✅ Fetch the original patient from DB
@@ -135,13 +131,9 @@ public String updatePatientProfile(@ModelAttribute Patient updatedPatient,
     return "redirect:/patient";
 }
 
-
-
-
-
     //Pagination//
    @GetMapping("/list")
-public String getAllPatientsWithPagination(Model model,
+    public String getAllPatientsWithPagination(Model model,
                                            @RequestParam(defaultValue = "0") int pageNo,
                                            @RequestParam(defaultValue = "5") int pageSize) throws ExecutionException, InterruptedException {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -173,8 +165,8 @@ public String getAllPatientsWithPagination(Model model,
 }
 
 
-//ViewPrescription//
-@GetMapping("/viewPrescription")
+    //ViewPrescription//
+    @GetMapping("/viewPrescription")
     public String viewLatestPrescription(@RequestParam(defaultValue = "0") int pageNo,
                                          Model model) throws Exception {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -212,7 +204,7 @@ public String getAllPatientsWithPagination(Model model,
 
     //BackController//
     @PostMapping("/backDashboard")
-public String backToDashboard(@RequestParam("patientId") String patientId, Model model) throws Exception {
+    public String backToDashboard(@RequestParam("patientId") String patientId, Model model) throws Exception {
     Patient patient = patientService.getPatientById(patientId);
 
     Doctor doctor = null;

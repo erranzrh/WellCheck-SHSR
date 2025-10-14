@@ -19,19 +19,20 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final PatientService patientService;
     private final DoctorService doctorService;
-    private final PharmacistService pharmacistService;
+    // private final PharmacistService pharmacistService;
 
 
-    public UserService(SHSRDAO<User> userRepository, PasswordEncoder passwordEncoder,
-    PatientService patientService,
-    DoctorService doctorService,
-    PharmacistService pharmacistService) {
-this.userRepository = userRepository;
-this.passwordEncoder = passwordEncoder;
-this.patientService = patientService;
-this.doctorService = doctorService;
-this.pharmacistService = pharmacistService;
+    public UserService(SHSRDAO<User> userRepository,
+                   PasswordEncoder passwordEncoder,
+                   PatientService patientService,
+                   DoctorService doctorService               /* ← stop here */
+) {
+    this.userRepository   = userRepository;
+    this.passwordEncoder  = passwordEncoder;
+    this.patientService   = patientService;
+    this.doctorService    = doctorService;
 }
+
 
 
     public String updateUser(User user) throws ExecutionException, InterruptedException {

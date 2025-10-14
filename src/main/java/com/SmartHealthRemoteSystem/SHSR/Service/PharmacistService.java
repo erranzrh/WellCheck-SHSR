@@ -7,11 +7,13 @@ package com.SmartHealthRemoteSystem.SHSR.Service;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.SmartHealthRemoteSystem.SHSR.Medicine.Medicine;
 import com.SmartHealthRemoteSystem.SHSR.User.User;
+import com.SmartHealthRemoteSystem.SHSR.User.UserRepository;
 import com.SmartHealthRemoteSystem.SHSR.User.Pharmacist.Pharmacist;
 import com.SmartHealthRemoteSystem.SHSR.User.Pharmacist.PharmacistRepository;
 import com.SmartHealthRemoteSystem.SHSR.Medicine.MongoMedicineRepository;
@@ -24,8 +26,9 @@ public class PharmacistService {
     @Autowired
     private PharmacistRepository pharmacistRepository;
 
+
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
     @Autowired
     private MongoMedicineRepository medicineRepository;
@@ -36,7 +39,7 @@ public class PharmacistService {
 
     public Pharmacist getPharmacist(String pharmacistId) throws ExecutionException, InterruptedException {
         Pharmacist pharmacist = pharmacistRepository.get(pharmacistId);
-        User user = userService.getUser(pharmacistId);
+        User user = userRepository.get(pharmacistId);
 
         if (pharmacist == null || user == null) {
             return null;

@@ -26,6 +26,7 @@ com\SmartHealthRemoteSystem\SHSR\Service\SymptomsService.class
 com\SmartHealthRemoteSystem\SHSR\Service\PharmacistService.class
 com\SmartHealthRemoteSystem\SHSR\User\Doctor\DoctorRepository.class
 com\SmartHealthRemoteSystem\SHSR\User\Doctor\DoctorController.class
+com\SmartHealthRemoteSystem\SHSR\WebConfiguration\AppConfig.class
 com\SmartHealthRemoteSystem\SHSR\User\Pharmacist\PharmacistController.class
 com\SmartHealthRemoteSystem\SHSR\Sensor\Service\UniqueKeyGenerator.class
 com\SmartHealthRemoteSystem\SHSR\Service\MailService.class
